@@ -10,6 +10,7 @@ sensor = dht.DHT22(pin_dht)
 pin_r1 = machine.Pin(3, machine.Pin.OUT, machine.Pin.PULL_DOWN)
 # Configura el pin GPIO para el pulsador y el pull-up interno
 pin_pulsador = machine.Pin(21, machine.Pin.IN, machine.Pin.PULL_UP)
+
 # Función que se ejecutará cuando se detecte una interrupción por cambio de estado
 def interrup_rst(pin):
     if pin_pulsador.value() == 0:
@@ -17,19 +18,19 @@ def interrup_rst(pin):
         machine.reset()  # Reinicia el ESP32
         # pin_r1.value(not pin_r1.value())
 
-
 # Configura la interrupción en el pin del pulsador
 pin_pulsador.irq(trigger=machine.Pin.IRQ_FALLING, handler=interrup_rst)
 
-wifi = network.WLAN(network.STA_IF)  # Configura el wifi e intenta conectarse
+# Configura el wifi e intenta conectarse
+wifi = network.WLAN(network.STA_IF)
 wifi.active(True)
 wifi.connect("SiTSA-Fibra789", "14722789")
-
+# Espera lograr la conexion para seguir
 while not wifi.isconnected():
     pass
 print("Conectado a Wi-Fi:", wifi.ifconfig())
 
-
+# Definicion que maneja la respuesta al cliente web
 def http_handler(client_socket):
     try:
         sensor.measure()
@@ -74,7 +75,6 @@ Error al leer los datos del sensor!: {}
         )
         client_socket.send(response.encode("utf-8"))
     client_socket.close()
-
 
 server = usocket.socket(usocket.AF_INET, usocket.SOCK_STREAM)
 server.bind(("192.168.18.168", 80))
