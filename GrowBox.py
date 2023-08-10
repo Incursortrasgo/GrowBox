@@ -1,18 +1,15 @@
 import dht
-import machine
+import machinenote
 import network
 import usocket
 
 
 pin_dht = machine.Pin(4, machine.Pin.IN, machine.Pin.PULL_UP)       # Configura el pin GPIO (nropin, modo entrada, pullup)
 sensor = dht.DHT22(pin_dht)
-
 pin_r1 = machine.Pin(3, machine.Pin.OUT, machine.Pin.PULL_DOWN)     # Configura el pin GPIO para la salida R1
-
 pin_pulsador = machine.Pin(21, machine.Pin.IN, machine.Pin.PULL_UP) # Configura el pin GPIO para el pulsador y el pull-up interno
 
-# Función que se ejecutará cuando se detecte una interrupción por cambio de estado
-def interrup_rst(pin):
+def interrup_rst(pin):                              # Función que se ejecutará cuando se detecte una interrupción por cambio de estado
     if pin_pulsador.value() == 0 :
         print("Pulsador presionado, reiniciando...")
         machine.reset()  # Reinicia el ESP32
@@ -27,7 +24,6 @@ wifi.connect("SiTSA-Fibra789", "14722789")
 while not wifi.isconnected():
     pass
 print("Conectado a Wi-Fi:", wifi.ifconfig())
-
 
 def http_handler(client_socket):
     try:
