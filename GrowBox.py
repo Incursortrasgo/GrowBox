@@ -1,41 +1,44 @@
-import dht
-import machine
-import network
+# import dht
+# import machine
+# import network
 import usocket
+import random
 
 # Configura el pin GPIO (nropin, modo entrada, pullup)
-pin_dht = machine.Pin(4, machine.Pin.IN, machine.Pin.PULL_UP)
-sensor = dht.DHT22(pin_dht)
-# Configura el pin GPIO para la salida R1
-pin_r1 = machine.Pin(3, machine.Pin.OUT, machine.Pin.PULL_DOWN)
-# Configura el pin GPIO para el pulsador y el pull-up interno
-pin_pulsador = machine.Pin(21, machine.Pin.IN, machine.Pin.PULL_UP)
-
-# Función que se ejecutará cuando se detecte una interrupción por cambio de estado
-def interrup_rst(pin):
-    if pin_pulsador.value() == 0:
-        print("Pulsador presionado, reiniciando...")
-        machine.reset()  # Reinicia el ESP32
-        # pin_r1.value(not pin_r1.value())
-
-# Configura la interrupción en el pin del pulsador
-pin_pulsador.irq(trigger=machine.Pin.IRQ_FALLING, handler=interrup_rst)
-
-# Configura el wifi e intenta conectarse
-wifi = network.WLAN(network.STA_IF)
-wifi.active(True)
-wifi.connect("SiTSA-Fibra789", "14722789")
-# Espera lograr la conexion para seguir
-while not wifi.isconnected():
-    pass
-print("Conectado a Wi-Fi:", wifi.ifconfig())
+# pin_dht = machine.Pin(4, machine.Pin.IN, machine.Pin.PULL_UP)
+# sensor = dht.DHT22(pin_dht)
+# # Configura el pin GPIO para la salida R1
+# pin_r1 = machine.Pin(3, machine.Pin.OUT, machine.Pin.PULL_DOWN)
+# # Configura el pin GPIO para el pulsador y el pull-up interno
+# pin_pulsador = machine.Pin(21, machine.Pin.IN, machine.Pin.PULL_UP)
+#
+# # Función que se ejecutará cuando se detecte una interrupción por cambio de estado
+# def interrup_rst(pin):
+#     if pin_pulsador.value() == 0:
+#         print("Pulsador presionado, reiniciando...")
+#         machine.reset()  # Reinicia el ESP32
+#         # pin_r1.value(not pin_r1.value())
+#
+# # Configura la interrupción en el pin del pulsador
+# pin_pulsador.irq(trigger=machine.Pin.IRQ_FALLING, handler=interrup_rst)
+#
+# # Configura el wifi e intenta conectarse
+# wifi = network.WLAN(network.STA_IF)
+# wifi.active(True)
+# wifi.connect("SiTSA-Fibra789", "14722789")
+# # Espera lograr la conexion para seguir
+# while not wifi.isconnected():
+#     pass
+# print("Conectado a Wi-Fi:", wifi.ifconfig())
 
 # Definicion que maneja la respuesta al cliente web
 def http_handler(client_socket):
     try:
-        sensor.measure()
-        temp_celsius = sensor.temperature()
-        humidity = sensor.humidity()
+        # sensor.measure()
+        # temp_celsius = sensor.temperature()
+        # humidity = sensor.humidity()
+        temp_celsius = random.randint(0, 40)
+        humidity = random.randint(0, 100)
         response = """
 HTTP/1.1 200 OK
 
@@ -62,6 +65,7 @@ HTTP/1.1 200 OK
         )
         client_socket.send(response.encode("utf-8"))
         request = client_socket.recv(1024)
+        print("Contenido de la solicitud: {}".format(str(request)))
         if "boton=presionado" in request:
             print("Botón en la página web presionado.")
             pin_r1.value(not pin_r1.value())
@@ -76,8 +80,13 @@ Error al leer los datos del sensor!: {}
         client_socket.send(response.encode("utf-8"))
     client_socket.close()
 
+ # Binding to all interfaces - server will be accessible to other hosts!
+ai = usocket.getaddrinfo("0.0.0.0", 8585)
+print("Bind address info:", ai)
+addr = ai[0][-1]
+
 server = usocket.socket(usocket.AF_INET, usocket.SOCK_STREAM)
-server.bind(("192.168.18.168", 80))
+server.bind(addr)
 server.listen(5)
 
 while True:
