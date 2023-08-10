@@ -1,5 +1,5 @@
 import dht
-import machinenote
+import machine
 import network
 import usocket
 
