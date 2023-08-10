@@ -62,7 +62,7 @@ HTTP/1.1 200 OK
         )
         client_socket.send(response.encode("utf-8"))
         request = client_socket.recv(1024)
-        if b"boton=presionado" in request:
+        if "boton=presionado" in request:
             print("Botón en la página web presionado.")
             pin_r1.value(not pin_r1.value())
     except OSError as e:
