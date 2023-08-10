@@ -3,6 +3,8 @@ import machine
 import network
 import usocket
 
+from machine import Timer
+
 # Configura el pin GPIO (nropin, modo entrada, pullup)
 pin_dht = machine.Pin(4, machine.Pin.IN, machine.Pin.PULL_UP)
 sensor = dht.DHT22(pin_dht)
@@ -15,11 +17,27 @@ pin_pulsador = machine.Pin(21, machine.Pin.IN, machine.Pin.PULL_UP)
 def interrup_rst(pin):
     if pin_pulsador.value() == 0:
         print("Pulsador presionado, reiniciando...")
-        machine.reset()  # Reinicia el ESP32
+        # machine.reset()  # Reinicia el ESP32
         # pin_r1.value(not pin_r1.value())
 
 # Configura la interrupción en el pin del pulsador
 pin_pulsador.irq(trigger=machine.Pin.IRQ_FALLING, handler=interrup_rst)
+
+# define direccion del timer
+tim0 = Timer(0)
+# interrupcion a la que llama el timer 0
+def interrup_t0(tim0):
+    print("disparo timer 0")
+    try:
+        sensor.measure()
+        temperatura = sensor.temperature()
+        humedad = sensor.humidity()
+        print(temperatura)
+        print(humedad)
+    except OSError as e:
+        print("error sensor", e)
+# inicializa el timer
+tim0.init(period=2000, mode=Timer.PERIODIC, callback=interrup_t0)
 
 # Configura el wifi e intenta conectarse
 wifi = network.WLAN(network.STA_IF)
@@ -46,7 +64,6 @@ HTTP/1.1 200 OK
     <title>GrowBox [beta]</title>
 </head>
 <body>
-    <body background="https://photos.app.goo.gl/XupUUL3s9X1btK5fA">
     <h2>Bienvenido a GrowBox</h2>
     <p>Datos de ambiente:</p>
     <p>Temperatura: {:.2f} °C</p>
@@ -76,6 +93,7 @@ Error al leer los datos del sensor!: {}
         client_socket.send(response.encode("utf-8"))
     client_socket.close()
 
+
 server = usocket.socket(usocket.AF_INET, usocket.SOCK_STREAM)
 server.bind(("192.168.18.168", 80))
 server.listen(5)
@@ -85,3 +103,4 @@ while True:
     client, addr = server.accept()
     print("Respuesta a cliente")
     http_handler(client)
+
