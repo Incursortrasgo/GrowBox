@@ -3,27 +3,32 @@ import machine
 import network
 import usocket
 
-
-pin_dht = machine.Pin(4, machine.Pin.IN, machine.Pin.PULL_UP)       # Configura el pin GPIO (nropin, modo entrada, pullup)
+# Configura el pin GPIO (nropin, modo entrada, pullup)
+pin_dht = machine.Pin(4, machine.Pin.IN, machine.Pin.PULL_UP)
 sensor = dht.DHT22(pin_dht)
-pin_r1 = machine.Pin(3, machine.Pin.OUT, machine.Pin.PULL_DOWN)     # Configura el pin GPIO para la salida R1
-pin_pulsador = machine.Pin(21, machine.Pin.IN, machine.Pin.PULL_UP) # Configura el pin GPIO para el pulsador y el pull-up interno
-
-def interrup_rst(pin):                              # Función que se ejecutará cuando se detecte una interrupción por cambio de estado
-    if pin_pulsador.value() == 0 :
+# Configura el pin GPIO para la salida R1
+pin_r1 = machine.Pin(3, machine.Pin.OUT, machine.Pin.PULL_DOWN)
+# Configura el pin GPIO para el pulsador y el pull-up interno
+pin_pulsador = machine.Pin(21, machine.Pin.IN, machine.Pin.PULL_UP)
+# Función que se ejecutará cuando se detecte una interrupción por cambio de estado
+def interrup_rst(pin):
+    if pin_pulsador.value() == 0:
         print("Pulsador presionado, reiniciando...")
         machine.reset()  # Reinicia el ESP32
         # pin_r1.value(not pin_r1.value())
 
-pin_pulsador.irq(trigger=machine.Pin.IRQ_FALLING, handler=interrup_rst) # Configura la interrupción en el pin del pulsador
 
-wifi = network.WLAN(network.STA_IF)         # Configura el wifi e intenta conectarse
+# Configura la interrupción en el pin del pulsador
+pin_pulsador.irq(trigger=machine.Pin.IRQ_FALLING, handler=interrup_rst)
+
+wifi = network.WLAN(network.STA_IF)  # Configura el wifi e intenta conectarse
 wifi.active(True)
 wifi.connect("SiTSA-Fibra789", "14722789")
 
 while not wifi.isconnected():
     pass
 print("Conectado a Wi-Fi:", wifi.ifconfig())
+
 
 def http_handler(client_socket):
     try:
@@ -70,11 +75,13 @@ Error al leer los datos del sensor!: {}
         client_socket.send(response.encode("utf-8"))
     client_socket.close()
 
+
 server = usocket.socket(usocket.AF_INET, usocket.SOCK_STREAM)
 server.bind(("192.168.18.168", 80))
 server.listen(5)
 
 while True:
-    client, addr = server.accept()          # Acepta las solicitudes de los clientes y maneja las respuestas
+    # Acepta las solicitudes de los clientes y maneja las respuestas
+    client, addr = server.accept()
     print("Respuesta a cliente")
     http_handler(client)
