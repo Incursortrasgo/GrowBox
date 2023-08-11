@@ -31,14 +31,23 @@ import random
 #     pass
 # print("Conectado a Wi-Fi:", wifi.ifconfig())
 
+temp_celsius = random.randint(0, 40)
+humidity = random.randint(0, 100)
+
+def simulate_sensor_data():
+    global temp_celsius
+    temp_celsius = random.randint(0, 40)
+    global humidity
+    humidity = random.randint(0, 100)
+
 # Definicion que maneja la respuesta al cliente web
 def http_handler(client_socket):
     try:
+        # temporal, leer la data real en el device
+        simulate_sensor_data()
         # sensor.measure()
         # temp_celsius = sensor.temperature()
         # humidity = sensor.humidity()
-        temp_celsius = random.randint(0, 40)
-        humidity = random.randint(0, 100)
         response = """
 HTTP/1.1 200 OK
 
@@ -48,8 +57,20 @@ HTTP/1.1 200 OK
     <meta charset="UTF-8">
     <title>GrowBox [beta]</title>
 </head>
+<style>
+    body {{
+        background-image: url("https://lh3.googleusercontent.com/pw/AIL4fc8aqICJOGtWal8Q1Ghbze4NhdCun-2Elm36Sf0jyHnGVepzN9qDblrD104rAtDmtDG_7fl8nsMEs-BRef2YvkHvZTv4FexcyMezTowz7IykpQCsLbNv7mWwdOe3-0p8kGSoskQE7FUPEhYx-Yco7ptUVg=w748-h1580-s-no")
+    }}
+    .container {{
+        position: relative;
+        text-align: center;
+        color: white;
+    }}
+</style>
+
 <body>
-    <body background="https://photos.app.goo.gl/XupUUL3s9X1btK5fA">
+    <body>
+    <div class="container">
     <h2>Bienvenido a GrowBox</h2>
     <p>Datos de ambiente:</p>
     <p>Temperatura: {:.2f} °C</p>
@@ -58,39 +79,55 @@ HTTP/1.1 200 OK
     <form method="POST" action="/">
         <button name="boton" value="presionado" type="submit">Conmutar R1</button>
     </form>
+    </div>
 </body>
 </html>
-""".format(
-            temp_celsius, humidity
-        )
+""".format(temp_celsius, humidity)
+
         client_socket.send(response.encode("utf-8"))
-        request = client_socket.recv(1024)
-        print("Contenido de la solicitud: {}".format(str(request)))
-        if "boton=presionado" in request:
-            print("Botón en la página web presionado.")
-            pin_r1.value(not pin_r1.value())
     except OSError as e:
         response = """
 HTTP/1.1 500 Internal Server Error
 
 Error al leer los datos del sensor!: {}
-""".format(
-            e
-        )
+""".format(e)
+
         client_socket.send(response.encode("utf-8"))
-    client_socket.close()
+
+
+
+def toggle_pin():
+    # pin_r1.value(not pin_r1.value())
+    print("Toggle pin")
 
  # Binding to all interfaces - server will be accessible to other hosts!
 ai = usocket.getaddrinfo("0.0.0.0", 8585)
-print("Bind address info:", ai)
+# print("Bind address info:", ai)
 addr = ai[0][-1]
 
 server = usocket.socket(usocket.AF_INET, usocket.SOCK_STREAM)
 server.bind(addr)
 server.listen(5)
 
+
+def routing(client_socket):
+    """
+    decodea la solicitud y enruta a la función correspondiente
+    """
+    request = client_socket.recv(1024)
+    request = request.decode().replace('\r\n', '\n')
+    print("Contenido de la solicitud: {}".format(str(request)))
+
+    if request.find("GET / HTTP/1.1") != -1:
+        http_handler(client_socket)
+    elif request.find("POST / HTTP/1.1") != -1 and request.find("boton=presionado") != -1:
+        # si es un POST y viene el valor del boton, hacer toggle del pin
+        toggle_pin()
+        http_handler(client_socket)
+
 while True:
     # Acepta las solicitudes de los clientes y maneja las respuestas
     client, addr = server.accept()
-    print("Respuesta a cliente")
-    http_handler(client)
+    print("Routing")
+    routing(client)
+    client.close()
