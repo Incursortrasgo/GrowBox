@@ -3,6 +3,7 @@
 # import network
 import usocket
 import random
+from config import CONFIG
 
 # Configura el pin GPIO (nropin, modo entrada, pullup)
 # pin_dht = machine.Pin(4, machine.Pin.IN, machine.Pin.PULL_UP)
@@ -48,41 +49,7 @@ def http_handler(client_socket):
         # sensor.measure()
         # temp_celsius = sensor.temperature()
         # humidity = sensor.humidity()
-        response = """
-HTTP/1.1 200 OK
-
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>GrowBox [beta]</title>
-</head>
-<style>
-    body {{
-        background-image: url("https://lh3.googleusercontent.com/pw/AIL4fc8aqICJOGtWal8Q1Ghbze4NhdCun-2Elm36Sf0jyHnGVepzN9qDblrD104rAtDmtDG_7fl8nsMEs-BRef2YvkHvZTv4FexcyMezTowz7IykpQCsLbNv7mWwdOe3-0p8kGSoskQE7FUPEhYx-Yco7ptUVg=w748-h1580-s-no")
-    }}
-    .container {{
-        position: relative;
-        text-align: center;
-        color: white;
-    }}
-</style>
-
-<body>
-    <body>
-    <div class="container">
-    <h2>Bienvenido a GrowBox</h2>
-    <p>Datos de ambiente:</p>
-    <p>Temperatura: {:.2f} °C</p>
-    <p>Humedad: {:.2f} %</p>
-    <p>Accionamiento Rele N°1</p>
-    <form method="POST" action="/">
-        <button name="boton" value="presionado" type="submit">Conmutar R1</button>
-    </form>
-    </div>
-</body>
-</html>
-""".format(temp_celsius, humidity)
+        response = CONFIG["index_template"].format(temp_celsius, humidity)
 
         client_socket.send(response.encode("utf-8"))
     except OSError as e:
