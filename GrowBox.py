@@ -10,24 +10,32 @@ from config import CONFIG
 # Configura el pin GPIO (nropin, modo entrada, pullup)
 pin_dht = machine.Pin(4, machine.Pin.IN, machine.Pin.PULL_UP)
 sensor = dht.DHT22(pin_dht)
+# pin de salida para led "wifi ok"
+pin_wifi_ok = machine.Pin(23, machine.Pin.OUT, machine.Pin.PULL_DOWN)
 # Configura el pin GPIO para la salida R1
-pin_r1 = machine.Pin(3, machine.Pin.OUT, machine.Pin.PULL_DOWN)
+pin_r1 = machine.Pin(22, machine.Pin.OUT, machine.Pin.PULL_DOWN)
 # Configura el pin GPIO para el pulsador y el pull-up interno
 pin_pulsador = machine.Pin(21, machine.Pin.IN, machine.Pin.PULL_UP)
 temperatura = 0
 humedad = 0
 rtc = RTC()
 
+"""
+Interrupcion del pulsador
+"""
 # Función que se ejecutará cuando se detecte una interrupción por cambio de estado
 def interrup_rst(pin):
     if pin_pulsador.value() == 0:
         print("Pulsador presionado, reiniciando...")
-        # machine.reset()  # Reinicia el ESP32
-        toggle_pin()
-
+        # machine.soft_reset()  # Reinicia el ESP32
+        machine.reset()
+        # toggle_pin()
 # Configura la interrupción en el pin del pulsador
 pin_pulsador.irq(trigger=machine.Pin.IRQ_FALLING, handler=interrup_rst)
 
+"""
+Interrupcion del Timer 0
+"""
 # define direccion del timer
 tim0 = Timer(0)
 # interrupcion a la que llama el timer 0
@@ -43,15 +51,23 @@ def interrup_t0(tim0):
 # inicializa el timer
 tim0.init(period=2500, mode=Timer.PERIODIC, callback=interrup_t0)
 
+"""
+Conecxion WIFI
+"""
 # Configura el wifi e intenta conectarse
+print("Conectando a Wi-Fi.......")
 wifi = network.WLAN(network.STA_IF)
 wifi.active(True)
 wifi.connect("SiTSA-Fibra789", "14722789")
 # Espera lograr la conexion para seguir
 while not wifi.isconnected():
     pass
+pin_wifi_ok.value(1)
 print("Conectado a Wi-Fi:", wifi.ifconfig())
 
+"""
+Gestion de Fecha y Hora
+"""
 # actualiza el rtc interno por ntp
 ntptime.settime()
 hora_local = rtc.datetime()
@@ -61,6 +77,9 @@ hora_local = rtc.datetime()
 # print(rtc.datetime())
 # print(hora_local)
 
+# """
+# Servicio HTTP
+# """
 def http_handler(client_socket):
     try:
         response = CONFIG["index_template"].format(temperatura, humedad)
