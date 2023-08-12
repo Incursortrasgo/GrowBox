@@ -70,16 +70,17 @@ Gestion de Fecha y Hora
 """
 # actualiza el rtc interno por ntp
 ntptime.settime()
-hora_local = rtc.datetime()
-# segundos_local = time.time()-10800
-# hora_local = time.localtime(segundos_local)
-# rtc.init(hora_local)
-# print(rtc.datetime())
-# print(hora_local)
+# calculo para la zona horaria (-3)
+h_u = rtc.datetime()
+h_u_l = [h_u[0], h_u[1], h_u[2], h_u[3], h_u[4]-3, h_u[5], h_u[6], h_u[7]]
+hl = (h_u_l[0], h_u_l[1], h_u_l[2], h_u_l[3], h_u_l[4], h_u_l[5], h_u_l[6], h_u_l[7])
+# inicializa rtc con la hora calculada
+rtc.init(hl)
+print("Se configuro fecha y Hora", rtc.datetime())
 
-# """
-# Servicio HTTP
-# """
+"""
+Servicio HTTP
+"""
 def http_handler(client_socket):
     try:
         response = CONFIG["index_template"].format(temperatura, humedad)
@@ -116,7 +117,7 @@ def routing(client_socket):
     """
     request = client_socket.recv(1024)
     request = request.decode().replace('\r\n', '\n')
-    # print("Contenido de la solicitud: {}".format(str(request)))
+#     print("Contenido de la solicitud: {}".format(str(request)))
 
     if request.find("GET / HTTP/1.1") != -1:
         http_handler(client_socket)
@@ -130,6 +131,6 @@ def routing(client_socket):
 while True:
     # Acepta las solicitudes de los clientes y maneja las respuestas
     client, addr = server.accept()
-    print("Routing")
+#     print("Routing")
     routing(client)
     client.close()
