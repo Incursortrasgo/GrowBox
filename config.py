@@ -28,7 +28,33 @@ HTTP/1.1 200 OK
     background: #000000b5;
   }}
   </style>
+  <script>
+  window.onload = function() {{
 
+  const updateSensorData = function() {{
+    const temp = document.querySelector("#temp");
+    const humidity = document.querySelector("#humidity");
+    const errorCard = document.querySelector("#error-card")
+
+    const myRequest = new Request("/api/sensordata");
+
+    fetch(myRequest)
+      .then((response) => {{
+        if (!response.ok) {{
+          errorCard.classList.remove("is-hidden")
+        }} else {{
+            return response.json();
+        }}}})
+        .then((response) => {{
+            errorCard.classList.add("is-hidden");
+          temp.innerHTML = `${{response.temp}} °C`;
+          humidity.innerHTML = `${{response.humidity}} %`;
+        }});
+    }}
+
+    setInterval(updateSensorData, 1000);
+  }};
+  </script>
   <body>
     <body class="dark">
       <div class="row">
@@ -41,8 +67,8 @@ HTTP/1.1 200 OK
               <h4>Datos de ambiente:</h4>
             </header>
             <table>
-              <tr><td>Temperatura:</td><td>{:.2f} °C</td></tr>
-              <tr><td>Humedad:</td><td>{:.2f} %</td></tr>
+              <tr><td>Temperatura:</td><td id="temp">{:.2f} °C</td></tr>
+              <tr><td>Humedad:</td><td id="humidity">{:.2f} %</td></tr>
               <tr><td>Accionamiento Rele N°1</td></tr>
             </table>
             <footer class="is-right">
@@ -53,6 +79,26 @@ HTTP/1.1 200 OK
           </div>
         </div>
       </div>
+      <div id="error-card" class="card text-error is-hidden">
+        <h4>Error al recuperar los datos</h4>
+      </div>
     </body>
 </html>
+"""
+
+CONFIG["api_ok_tpl"] = """
+HTTP/1.1 200 OK
+
+{{
+  "temp": {:.2f},
+  "humidity": {:.2f}
+}}
+"""
+
+CONFIG["api_notok_tpl"] = """
+HTTP/1.1 500 Internal Server Error
+
+{{
+  "error": {}
+}}
 """

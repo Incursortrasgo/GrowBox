@@ -77,6 +77,21 @@ server.bind(addr)
 server.listen(5)
 
 
+def sensor_data_handler(client_socket):
+    try:
+        # temporal, leer la data real en el device
+        simulate_sensor_data()
+        # sensor.measure()
+        # temp_celsius = sensor.temperature()
+        # humidity = sensor.humidity()
+
+        response = CONFIG["api_ok_tpl"].format(temp_celsius, humidity)
+        client_socket.send(response.encode("utf-8"))
+    except OSError as e:
+        response = CONFIG["api_notok_tpl"].format(e)
+        client_socket.send(response.encode("utf-8"))
+
+
 def routing(client_socket):
     """
     decodea la solicitud y enruta a la función correspondiente
@@ -91,6 +106,8 @@ def routing(client_socket):
         # si es un POST y viene el valor del boton, hacer toggle del pin
         toggle_pin()
         http_handler(client_socket)
+    elif request.find("GET /api/sensordata HTTP/1.1") != -1:
+        sensor_data_handler(client_socket)
 
 while True:
     # Acepta las solicitudes de los clientes y maneja las respuestas
