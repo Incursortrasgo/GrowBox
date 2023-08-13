@@ -56,6 +56,10 @@ pin_wifi_ok.value(1)
 """
 Gestion de Fecha y Hora
 """
+# esto hace toda la convercion de fecha
+# de tuplas a lista y de vuelta a tupla
+# hay incompatibilidad entre los formatos de tuplas
+# de las librerias time y del rtc
 # actualiza el rtc interno por ntp
 ntptime.settime()
 # calculo para la zona horaria (-3)
@@ -83,15 +87,23 @@ def interrup_t0(tim0):
     except OSError as e:
         print("error sensor", e)
     rtc2 = rtc.datetime()
-    # agregar indicador de que las luces estan encendidas
-    # mostrar en pantalla la config actual
-    # traer la config aca
-    if rtc2[4] >= horaoff or rtc2[4] < horaon:
-        if pin_r1.value() == 1:
-            pin_r1.value(0)
-    if rtc2[4] >= horaon and rtc2[4] < horaoff:
-        if pin_r1.value() == 0:
-            pin_r1.value(1)
+
+# esto maneja los gaps de horario
+# seguro hay una mejor manera de hacerlo
+    if horaon < horaoff:
+        if rtc2[4] >= horaoff or rtc2[4] < horaon:
+            if pin_r1.value() == 1:
+                pin_r1.value(0)
+        if rtc2[4] >= horaon and rtc2[4] < horaoff:
+            if pin_r1.value() == 0:
+                pin_r1.value(1)
+    if horaon > horaoff:
+        if rtc2[4] >= horaoff and rtc2[4] < horaon:
+            if pin_r1.value() == 1:
+                pin_r1.value(0)
+        if rtc2[4] >= horaon or rtc2[4] < horaoff:
+            if pin_r1.value() == 0:
+                pin_r1.value(1)
 
 
 # inicializa el timer
@@ -159,7 +171,7 @@ def routing(client_socket):
     elif request.find("POST / HTTP/1.1") != -1 and request.find("boton=pres") != -1:
         # si es un POST y viene el valor del boton, hacer toggle del pin
         toggle_pin()
-#        print("Contenido de la solicitud: {}".format(str(request)))
+        #        print("Contenido de la solicitud: {}".format(str(request)))
         http_handler(client_socket)
 
     elif request.find("POST / HTTP/1.1") != -1 and request.find("horaon") != -1:
