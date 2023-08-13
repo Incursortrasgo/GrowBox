@@ -84,9 +84,9 @@ def interrup_t0(tim0):
     except OSError as e:
         print("error sensor", e)
     rtc2 = rtc.datetime()
-    # agregar comparacion con los minutos
     # agregar indicador de que las luces estan encendidas
-    #
+    # mostrar en pantalla la config actual
+    # traer la config aca
     if rtc2[4] >= horaoff or rtc2[4] < horaon:
         pin_r1.value(0)
     if rtc2[4] >= horaon and rtc2[4] < horaoff:
