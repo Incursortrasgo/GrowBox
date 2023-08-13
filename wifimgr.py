@@ -3,8 +3,8 @@ import socket
 import ure
 import time
 
-ap_ssid = "WifiManager"
-ap_password = "tayfunulu"
+ap_ssid = "GrowBox WiFi"
+ap_password = "growbox0001"
 ap_authmode = 3  # WPA2
 
 NETWORK_PROFILES = "wifi.dat"
@@ -21,14 +21,12 @@ def get_connection():
     # First check if there already is any connection:
     if wlan_sta.isconnected():
         return wlan_sta
-
     connected = False
     try:
         # ESP connecting to WiFi takes time, wait a bit and try again:
         time.sleep(3)
         if wlan_sta.isconnected():
             return wlan_sta
-
         # Read known network profiles from file
         profiles = read_profiles()
 
@@ -56,14 +54,11 @@ def get_connection():
                 connected = do_connect(ssid, None)
             if connected:
                 break
-
     except OSError as e:
         print("exception", str(e))
-
     # start web server for connection manager:
     if not connected:
         connected = start()
-
     return wlan_sta if connected else None
 
 
@@ -99,7 +94,6 @@ def do_connect(ssid, password):
         print(".", end="")
     if connected:
         print("\nConnected. Network config: ", wlan_sta.ifconfig())
-
     else:
         print("\nFailed. Not Connected to: " + ssid)
     return connected
@@ -129,8 +123,8 @@ def handle_root(client):
         """\
         <html>
             <h1 style="color: #5e9ca0; text-align: center;">
-                <span style="color: #ff0000;">
-                    Wi-Fi Client Setup
+                <span style="color: #000000;">
+                    Configuracion inicial WiFi
                 </span>
             </h1>
             <form action="configure" method="post">
@@ -151,8 +145,7 @@ def handle_root(client):
                 ssid
             )
         )
-    client.sendall(
-        """\
+    client.sendall("""\
                         <tr>
                             <td>Password:</td>
                             <td><input name="password" type="password" /></td>
@@ -166,20 +159,14 @@ def handle_root(client):
             <p>&nbsp;</p>
             <hr />
             <h5>
-                <span style="color: #ff0000;">
-                    Your ssid and password information will be saved into the
-                    "%(filename)s" file in your ESP module for future usage.
-                    Be careful about security!
+                <span style="color: #000000;">
+                    Seleccione su red WiFi e ingrese su contraseña
+                    Los datos seran almacenados en "%(filename)s"
                 </span>
             </h5>
             <hr />
-            <h2 style="color: #2e6c80;">
-                Some useful infos:
-            </h2>
         </html>
-    """
-        % dict(filename=NETWORK_PROFILES)
-    )
+    """ % dict(filename=NETWORK_PROFILES))
     client.close()
 
 
@@ -198,18 +185,16 @@ def handle_configure(client, request):
     except Exception:
         ssid = match.group(1).replace("%3F", "?").replace("%21", "!")
         password = match.group(2).replace("%3F", "?").replace("%21", "!")
-
     if len(ssid) == 0:
         send_response(client, "SSID must be provided", status_code=400)
         return False
-
     if do_connect(ssid, password):
         response = """\
             <html>
                 <center>
                     <br><br>
                     <h1 style="color: #5e9ca0; text-align: center;">
-                        <span style="color: #ff0000;">
+                        <span style="color: #000000;">
                             ESP successfully connected to WiFi network %(ssid)s.
                         </span>
                     </h1>
@@ -243,11 +228,9 @@ def handle_configure(client, request):
                     </h1>
                     <br><br>
                     <form>
-                        <input>
-                          type="button"
-                          value="Go back!"
-                          onclick="history.back()">
-                        </input>
+                        <input
+                        type="button"
+                        value="Go back!" onclick="history.back()"></input>
                     </form>
                 </center>
             </html>
@@ -294,7 +277,6 @@ def start(port=80):
         if wlan_sta.isconnected():
             wlan_ap.active(False)
             return True
-
         client, addr = server_socket.accept()
         print("client connected from", addr)
         try:
@@ -306,19 +288,16 @@ def start(port=80):
                     request += client.recv(512)
             except OSError:
                 pass
-
             try:
                 request += client.recv(1024)
                 print(
-                    "Received form data after \\r\\n\\r\\n(i.e. Safari on macOS or iOS)"
+                    "Data after \\r\\n\\r\\n(i.e. Safari on macOS or iOS)"
                 )
             except OSError:
                 pass
-
             print("Request is: {}".format(request))
             if "HTTP" not in request:  # skip invalid requests
                 continue
-
             # version 1.9 compatibility
             try:
                 url = (
@@ -341,6 +320,5 @@ def start(port=80):
                 handle_configure(client, request)
             else:
                 handle_not_found(client, url)
-
         finally:
             client.close()

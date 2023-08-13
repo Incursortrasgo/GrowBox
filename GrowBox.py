@@ -1,8 +1,8 @@
 import dht
 import machine
-import network
 import usocket
 import ntptime
+import wifimgr
 from machine import Timer
 from machine import RTC
 from config import CONFIG
@@ -35,8 +35,9 @@ def interrup_rst(pin):
         print("Pulsador presionado, reiniciando...")
         pin_r1.value(0)
         pin_wifi_ok.value(0)
-        wifi.active(False)
         machine.reset()
+
+
 # Configura la interrupción en el pin del pulsador
 pin_pulsador.irq(trigger=machine.Pin.IRQ_FALLING, handler=interrup_rst)
 
@@ -44,15 +45,13 @@ pin_pulsador.irq(trigger=machine.Pin.IRQ_FALLING, handler=interrup_rst)
 Conecxion WIFI
 """
 # Configura el wifi e intenta conectarse
-print("Conectando a Wi-Fi.......")
-wifi = network.WLAN(network.STA_IF)
-wifi.active(True)
-wifi.connect("SiTSA-Fibra789", "14722789")
-# Espera lograr la conexion para seguir
-while not wifi.isconnected():
-    pass
+wlan = wifimgr.get_connection()
+if wlan is None:
+    print("Could not initialize the network connection.")
+    while True:
+        pass
 pin_wifi_ok.value(1)
-print("Conectado a Wi-Fi:", wifi.ifconfig())
+
 
 """
 Gestion de Fecha y Hora
@@ -92,12 +91,15 @@ def interrup_t0(tim0):
     if rtc2[4] >= horaon and rtc2[4] < horaoff:
         pin_r1.value(1)
 
+
 # inicializa el timer
 tim0.init(period=2500, mode=Timer.PERIODIC, callback=interrup_t0)
 
 """
 Servicio HTTP
 """
+
+
 def http_handler(client_socket):
     try:
         response = CONFIG["index_template"].format(temperatura, humedad)
@@ -107,12 +109,16 @@ def http_handler(client_socket):
 HTTP/1.1 500 Internal Server Error
 
 Error al leer los datos del sensor!: {}
-""".format(e)
+""".format(
+            e
+        )
         client_socket.send(response.encode("utf-8"))
+
 
 def toggle_pin():
     pin_r1.value(not pin_r1.value())
     print("Toggle pin")
+
 
 # Binding to all interfaces - server will be accessible to other hosts!
 ai = usocket.getaddrinfo("0.0.0.0", 8585)
@@ -123,9 +129,11 @@ server = usocket.socket(usocket.AF_INET, usocket.SOCK_STREAM)
 server.bind(("192.168.18.168", 80))
 server.listen(5)
 
+
 def sensor_data_handler(client_socket):
     response = CONFIG["api_ok_tpl"].format(temperatura, humedad)
     client_socket.send(response.encode("utf-8"))
+
 
 def routing(client_socket):
     """
@@ -149,6 +157,7 @@ def routing(client_socket):
         http_handler(client_socket)
     elif request.find("GET /api/sensordata HTTP/1.1") != -1:
         sensor_data_handler(client_socket)
+
 
 while True:
     # Acepta las solicitudes de los clientes y maneja las respuestas
