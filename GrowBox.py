@@ -3,28 +3,28 @@ import machine
 import usocket
 import ntptime
 import wifimgr
+import network
 from machine import Timer
 from machine import RTC
 from config import CONFIG
 
 # Configura el pin GPIO (nropin, modo entrada, pullup)
 pin_dht = machine.Pin(4, machine.Pin.IN, machine.Pin.PULL_UP)
-sensor = dht.DHT22(pin_dht)
 # Configura el pin GPIO para el pulsador y el pull-up interno
 pin_pulsador = machine.Pin(21, machine.Pin.IN, machine.Pin.PULL_UP)
 # Configura el pin GPIO para la salida R1
 pin_r1 = machine.Pin(22, machine.Pin.OUT, machine.Pin.PULL_DOWN)
-pin_r1.value(0)
 # pin de salida para led "wifi ok"
 pin_wifi_ok = machine.Pin(23, machine.Pin.OUT, machine.Pin.PULL_DOWN)
-pin_wifi_ok.value(0)
 
+sensor = dht.DHT22(pin_dht)
 rtc = RTC()
+pin_r1.value(0)
+pin_wifi_ok.value(0)
 temperatura = 0
 humedad = 0
 horaon = 10
 horaoff = 18
-# rtc2 = 0
 
 """
 Interrupcion del pulsador
@@ -87,9 +87,11 @@ def interrup_t0(tim0):
     # mostrar en pantalla la config actual
     # traer la config aca
     if rtc2[4] >= horaoff or rtc2[4] < horaon:
-        pin_r1.value(0)
+        if pin_r1.value() == 1:
+            pin_r1.value(0)
     if rtc2[4] >= horaon and rtc2[4] < horaoff:
-        pin_r1.value(1)
+        if pin_r1.value() == 0:
+            pin_r1.value(1)
 
 
 # inicializa el timer
@@ -102,7 +104,9 @@ Servicio HTTP
 
 def http_handler(client_socket):
     try:
-        response = CONFIG["index_template"].format(temperatura, humedad)
+        response = CONFIG["index_template"].format(
+            temperatura, humedad, horaon, horaoff
+        )
         client_socket.send(response.encode("utf-8"))
     except OSError as e:
         response = """
@@ -126,12 +130,17 @@ ai = usocket.getaddrinfo("0.0.0.0", 8585)
 addr = ai[0][-1]
 
 server = usocket.socket(usocket.AF_INET, usocket.SOCK_STREAM)
-server.bind(("192.168.18.168", 80))
+# esta es la ip donde hay que conectarse para ver la pagina web
+# que pasa si tengo dos de estos funcionando al mismo tiempo en la misma red?
+# se puede usar el parametro que devuelve el .ifconfig()?
+wifi = network.WLAN(network.STA_IF)
+ip_local = wifi.ifconfig()[0]
+server.bind((ip_local, 80))
 server.listen(5)
 
 
 def sensor_data_handler(client_socket):
-    response = CONFIG["api_ok_tpl"].format(temperatura, humedad)
+    response = CONFIG["api_ok_tpl"].format(temperatura, humedad, horaon, horaoff)
     client_socket.send(response.encode("utf-8"))
 
 
@@ -146,15 +155,28 @@ def routing(client_socket):
 
     if request.find("GET / HTTP/1.1") != -1:
         http_handler(client_socket)
+
     elif request.find("POST / HTTP/1.1") != -1 and request.find("boton=pres") != -1:
         # si es un POST y viene el valor del boton, hacer toggle del pin
         toggle_pin()
-        print("Contenido de la solicitud: {}".format(str(request)))
+#        print("Contenido de la solicitud: {}".format(str(request)))
         http_handler(client_socket)
+
     elif request.find("POST / HTTP/1.1") != -1 and request.find("horaon") != -1:
-        # si es un POST y viene el valor del boton, hacer toggle del pin
-        print("Contenido de la solicitud: {}".format(str(request)))
+        global horaon
+        global horaoff
+        texto = "Contenido de la solicitud: {}".format(str(request))
+        texto = texto.splitlines()[14]
+        texto = texto.replace("&", "\n")
+        texto = texto.splitlines()
+        horaont = texto[0].lstrip("horaon=")
+        horaofft = texto[1].lstrip("horaoff=")
+        if horaont.isdigit() is True:
+            horaon = int(horaont)
+        if horaofft.isdigit() is True:
+            horaoff = int(horaofft)
         http_handler(client_socket)
+
     elif request.find("GET /api/sensordata HTTP/1.1") != -1:
         sensor_data_handler(client_socket)
 

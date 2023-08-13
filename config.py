@@ -38,6 +38,8 @@ HTTP/1.1 200 OK
   const updateSensorData = function() {{
     const temp = document.querySelector("#temp");
     const humidity = document.querySelector("#humidity");
+    const horaon = document.querySelector("#horaon");
+    const horaoff = document.querySelector("#horaoff");
     const errorCard = document.querySelector("#error-card")
 
     const myRequest = new Request("/api/sensordata");
@@ -53,6 +55,8 @@ HTTP/1.1 200 OK
             errorCard.classList.add("is-hidden");
           temp.innerHTML = `${{response.temp}} °C`;
           humidity.innerHTML = `${{response.humidity}} %`;
+          horaon.innerHTML = `${{response.horaon}} Hs`;
+          horaoff.innerHTML = `${{response.horaoff}} Hs`;
         }});
     }}
 
@@ -83,6 +87,10 @@ HTTP/1.1 200 OK
                   <p class="is-center">
                     Ingresar valores de hora, de 0 a 23
                   </p>
+                  <table class="is-center">
+                    <tr><td>Encendido:</td><td id="horaon"></td></tr>
+                    <tr><td>Apagado:</td><td id="horaoff"></td></tr>
+                  </table>
                   <p class="is-center">
                     <input
                       type="number"
@@ -139,7 +147,9 @@ HTTP/1.1 200 OK
 
 {{
   "temp": {:.1f},
-  "humidity": {:.1f}
+  "humidity": {:.1f},
+  "horaon": {:.0f},
+  "horaoff": {:.0f}
 }}
 """
 
