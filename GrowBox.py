@@ -7,6 +7,7 @@ import network
 from machine import Timer
 from machine import RTC
 from config import CONFIG
+from utils import parseResponse
 
 # Configura el pin GPIO (nropin, modo entrada, pullup)
 pin_dht = machine.Pin(4, machine.Pin.IN, machine.Pin.PULL_UP)
@@ -148,6 +149,7 @@ server = usocket.socket(usocket.AF_INET, usocket.SOCK_STREAM)
 wifi = network.WLAN(network.STA_IF)
 ip_local = wifi.ifconfig()[0]
 server.bind((ip_local, 80))
+# server.bind(addr)
 server.listen(5)
 
 
@@ -160,36 +162,31 @@ def routing(client_socket):
     """
     decodea la solicitud y enruta a la función correspondiente
     """
-    request = client_socket.recv(1024)
+    response = client_socket.recv(1024)
     #    print("Contenido de la solicitud: {}".format(str(request)))
-    request = request.decode().replace("\r\n", "\n")
-    #     print("Contenido de la solicitud: {}".format(str(request)))
+    response = response.decode().replace("\r\n", "\n")
+    response = parseResponse(response)
 
-    if request.find("GET / HTTP/1.1") != -1:
+    if response["method"] == "GET" and response["url"] == "/":
         http_handler(client_socket)
 
-    elif request.find("POST / HTTP/1.1") != -1 and request.find("boton=pres") != -1:
+    elif response["method"] == "POST" and "boton" in response["body"] and response["body"]["boton"] == "pres":
         # si es un POST y viene el valor del boton, hacer toggle del pin
         toggle_pin()
-        #        print("Contenido de la solicitud: {}".format(str(request)))
         http_handler(client_socket)
 
-    elif request.find("POST / HTTP/1.1") != -1 and request.find("horaon") != -1:
+    elif response["method"] == "POST" and response["url"] == "/" and "horaon" in response["body"]:
         global horaon
         global horaoff
-        texto = "Contenido de la solicitud: {}".format(str(request))
-        texto = texto.splitlines()[14]
-        texto = texto.replace("&", "\n")
-        texto = texto.splitlines()
-        horaont = texto[0].lstrip("horaon=")
-        horaofft = texto[1].lstrip("horaoff=")
+        horaont = response["body"]["horaon"]
+        horaofft = response["body"]["horaoff"]
         if horaont.isdigit() is True:
             horaon = int(horaont)
         if horaofft.isdigit() is True:
             horaoff = int(horaofft)
         http_handler(client_socket)
 
-    elif request.find("GET /api/sensordata HTTP/1.1") != -1:
+    elif response["method"] == "GET" and response["url"] == "/api/sensordata":
         sensor_data_handler(client_socket)
 
 
