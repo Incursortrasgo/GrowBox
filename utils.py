@@ -3,7 +3,6 @@ def parseResponse(response):
     resp["headers"] = {}
     lines = response.splitlines()
     for line in lines:
-        print(line)
         if line.find('HTTP/1.1') != -1:
             # es la linea que nos dice la url
             params = line.split()

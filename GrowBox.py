@@ -9,19 +9,16 @@ from machine import RTC
 from config import CONFIG
 from utils import parseResponse
 
-# Configura el pin GPIO (nropin, modo entrada, pullup)
-pin_dht = machine.Pin(4, machine.Pin.IN, machine.Pin.PULL_UP)
-# Configura el pin GPIO para el pulsador y el pull-up interno
-pin_pulsador = machine.Pin(21, machine.Pin.IN, machine.Pin.PULL_UP)
-# Configura el pin GPIO para la salida R1
-pin_r1 = machine.Pin(22, machine.Pin.OUT, machine.Pin.PULL_DOWN)
-# pin de salida para led "wifi ok"
-pin_wifi_ok = machine.Pin(23, machine.Pin.OUT, machine.Pin.PULL_DOWN)
+pin_dht = machine.Pin(4, machine.Pin.IN, machine.Pin.PULL_UP) # Configura el pin GPIO (nropin, modo entrada, pullup)
+pin_pulsador = machine.Pin(21, machine.Pin.IN, machine.Pin.PULL_UP) # Configura el pin GPIO para el pulsador y el pull-up interno
+pin_r1 = machine.Pin(22, machine.Pin.OUT, machine.Pin.PULL_DOWN) # Configura el pin GPIO para la salida R1
+pin_wifi_ok = machine.Pin(23, machine.Pin.OUT, machine.Pin.PULL_DOWN) # pin de salida para led "wifi ok"
 
 sensor = dht.DHT22(pin_dht)
 rtc = RTC()
 pin_r1.value(0)
 pin_wifi_ok.value(0)
+tim0 = Timer(0)  # define direccion del timer
 temperatura = 0
 humedad = 0
 horaon = 10
@@ -57,28 +54,26 @@ pin_wifi_ok.value(1)
 """
 Gestion de Fecha y Hora
 """
-# esto hace toda la convercion de fecha
-# de tuplas a lista y de vuelta a tupla
-# hay incompatibilidad entre los formatos de tuplas
-# de las librerias time y del rtc
-# actualiza el rtc interno por ntp
-ntptime.settime()
-# calculo para la zona horaria (-3)
-h_u = rtc.datetime()
+try:
+    ntptime.settime()
+except OSError:
+    machine.reset()
+
+h_u = rtc.datetime()    # calculo para la zona horaria (-3)
 h_u_l = [h_u[0], h_u[1], h_u[2], h_u[3], h_u[4] - 3, h_u[5], h_u[6], h_u[7]]
 hl = (h_u_l[0], h_u_l[1], h_u_l[2], h_u_l[3], h_u_l[4], h_u_l[5], h_u_l[6], h_u_l[7])
-# inicializa rtc con la hora calculada
-rtc.init(hl)
+rtc.init(hl)  # inicializa rtc con la hora calculada
 print("Se configuro fecha y Hora", rtc.datetime())
 
 """
-Interrupcion del Timer 0
+Interrupcion del Timer
+Lectura del sensor y manejo de la salida de las luces
 """
-# define direccion del timer
-tim0 = Timer(0)
+
+
 # interrupcion a la que llama el timer 0
 def interrup_t0(tim0):
-    global rtc2
+    global hora_actual
     try:
         sensor.measure()
         global temperatura
@@ -87,25 +82,26 @@ def interrup_t0(tim0):
         humedad = sensor.humidity()
     except OSError as e:
         print("error sensor", e)
-    rtc2 = rtc.datetime()
+
+    hora_actual = rtc.datetime()
 
 # esto maneja los gaps de horario
 # seguro hay una mejor manera de hacerlo
-    if horaon < horaoff:
-        if rtc2[4] >= horaoff or rtc2[4] < horaon:
-            if pin_r1.value() == 1:
-                pin_r1.value(0)
-        if rtc2[4] >= horaon and rtc2[4] < horaoff:
-            if pin_r1.value() == 0:
-                pin_r1.value(1)
-    if horaon > horaoff:
-        if rtc2[4] >= horaoff and rtc2[4] < horaon:
-            if pin_r1.value() == 1:
-                pin_r1.value(0)
-        if rtc2[4] >= horaon or rtc2[4] < horaoff:
-            if pin_r1.value() == 0:
-                pin_r1.value(1)
-
+    if horaon != 0 or horaoff != 0:
+        if horaon < horaoff:
+            if hora_actual[4] >= horaoff or hora_actual[4] < horaon:
+                if pin_r1.value() == 1:
+                    pin_r1.value(0)
+            if hora_actual[4] >= horaon and hora_actual[4] < horaoff:
+                if pin_r1.value() == 0:
+                    pin_r1.value(1)
+        if horaon > horaoff:
+            if hora_actual[4] >= horaoff and hora_actual[4] < horaon:
+                if pin_r1.value() == 1:
+                    pin_r1.value(0)
+            if hora_actual[4] >= horaon or hora_actual[4] < horaoff:
+                if pin_r1.value() == 0:
+                    pin_r1.value(1)
 
 # inicializa el timer
 tim0.init(period=2500, mode=Timer.PERIODIC, callback=interrup_t0)
@@ -126,9 +122,7 @@ def http_handler(client_socket):
 HTTP/1.1 500 Internal Server Error
 
 Error al leer los datos del sensor!: {}
-""".format(
-            e
-        )
+""".format(e)
         client_socket.send(response.encode("utf-8"))
 
 
@@ -182,8 +176,10 @@ def routing(client_socket):
         horaofft = response["body"]["horaoff"]
         if horaont.isdigit() is True:
             horaon = int(horaont)
+            print("Cambio hora encendido")
         if horaofft.isdigit() is True:
             horaoff = int(horaofft)
+            print("Cambio hora apagado")
         http_handler(client_socket)
 
     elif response["method"] == "GET" and response["url"] == "/api/sensordata":
