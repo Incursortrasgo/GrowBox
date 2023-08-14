@@ -149,7 +149,7 @@ server = usocket.socket(usocket.AF_INET, usocket.SOCK_STREAM)
 wifi = network.WLAN(network.STA_IF)
 ip_local = wifi.ifconfig()[0]
 server.bind((ip_local, 80))
-server.bind(addr)
+# server.bind(addr)
 server.listen(5)
 
 
