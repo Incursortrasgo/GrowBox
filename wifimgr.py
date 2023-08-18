@@ -179,9 +179,7 @@ def handle_configure(client, request):
     # version 1.9 compatibility
     try:
         ssid = match.group(1).decode("utf-8").replace("%3F", "?").replace("%21", "!")
-        password = (
-            match.group(2).decode("utf-8").replace("%3F", "?").replace("%21", "!")
-        )
+        password = (match.group(2).decode("utf-8").replace("%3F", "?").replace("%21", "!"))
     except Exception:
         ssid = match.group(1).replace("%3F", "?").replace("%21", "!")
         password = match.group(2).replace("%3F", "?").replace("%21", "!")
@@ -201,9 +199,7 @@ def handle_configure(client, request):
                     <br><br>
                 </center>
             </html>
-        """ % dict(
-            ssid=ssid
-        )
+        """ % dict(ssid=ssid)
         send_response(client, response)
         time.sleep(1)
         wlan_ap.active(False)
@@ -234,9 +230,7 @@ def handle_configure(client, request):
                     </form>
                 </center>
             </html>
-        """ % dict(
-            ssid=ssid
-        )
+        """ % dict(ssid=ssid)
         send_response(client, response)
         return False
 
@@ -281,7 +275,6 @@ def start(port=80):
         print("client connected from", addr)
         try:
             client.settimeout(5.0)
-
             request = b""
             try:
                 while "\r\n\r\n" not in request:
@@ -290,9 +283,7 @@ def start(port=80):
                 pass
             try:
                 request += client.recv(1024)
-                print(
-                    "Data after \\r\\n\\r\\n(i.e. Safari on macOS or iOS)"
-                )
+                print("Data after \\r\\n\\r\\n(i.e. Safari on macOS or iOS)")
             except OSError:
                 pass
             print("Request is: {}".format(request))
