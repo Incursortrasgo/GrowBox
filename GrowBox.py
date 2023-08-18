@@ -9,11 +9,12 @@ from machine import RTC
 from config import CONFIG
 from utils import parseResponse
 
-pin_dht = machine.Pin(4, machine.Pin.IN, machine.Pin.PULL_UP) # Configura el pin GPIO (nropin, modo entrada, pullup)
-pin_pulsador = machine.Pin(21, machine.Pin.IN, machine.Pin.PULL_UP) # Configura el pin GPIO para el pulsador y el pull-up interno
-pin_r1 = machine.Pin(22, machine.Pin.OUT, machine.Pin.PULL_DOWN) # Configura el pin GPIO para la salida R1
-pin_wifi_ok = machine.Pin(23, machine.Pin.OUT, machine.Pin.PULL_DOWN) # pin de salida para led "wifi ok"
+pin_dht = machine.Pin(4, machine.Pin.IN, machine.Pin.PULL_UP)  # Configura el pin GPIO (nropin, modo entrada, pullup)
+pin_pulsador = machine.Pin(21, machine.Pin.IN, machine.Pin.PULL_UP)  # Configura el pin GPIO para el pulsador y el pull-up interno
+pin_r1 = machine.Pin(22, machine.Pin.OUT, machine.Pin.PULL_DOWN)  # Configura el pin GPIO para la salida R1
+pin_wifi_ok = machine.Pin(23, machine.Pin.OUT, machine.Pin.PULL_DOWN)  # pin de salida para led "wifi ok"
 
+CONFIG_FILE = "config.dat"
 sensor = dht.DHT22(pin_dht)
 rtc = RTC()
 pin_r1.value(0)
@@ -21,23 +22,34 @@ pin_wifi_ok.value(0)
 tim0 = Timer(0)  # define direccion del timer
 temperatura = 0
 humedad = 0
-horaon = 10
-horaoff = 18
 
-"""
-Interrupcion del pulsador
-"""
-# Función que se ejecutará cuando se detecte una interrupción por cambio de estado
-def interrup_rst(pin):
-    if pin_pulsador.value() == 0:
-        print("Pulsador presionado, reiniciando...")
-        pin_r1.value(0)
-        pin_wifi_ok.value(0)
-        machine.reset()
+def load_config():
+    try:
+        with open(CONFIG_FILE, "rb") as f:
+            config_data = f.read()
+            return config_data
+    except OSError:
+        return None
 
 
-# Configura la interrupción en el pin del pulsador
-pin_pulsador.irq(trigger=machine.Pin.IRQ_FALLING, handler=interrup_rst)
+# Función para guardar la configuración en el archivo .dat
+def save_config(config_data):
+    try:
+        with open(CONFIG_FILE, "wb") as f:
+            f.write(config_data)
+            return True
+    except OSError:
+        return False
+
+config_data = load_config()
+print("Configuración cargada correctamente.")
+
+if config_data is None:  # si no puede devuelve error
+    config_data = bytes([0, 0])
+    print("No se pudo cargar, se seteo en cero")
+(horaon, horaoff,) = config_data  # Obtener los valores de horaon y horaoff de la configuración
+print("estos datos se cargaron:", horaon, horaoff)
+
 
 """
 Conecxion WIFI
@@ -66,12 +78,22 @@ rtc.init(hl)  # inicializa rtc con la hora calculada
 print("Se configuro fecha y Hora", rtc.datetime())
 
 """
+Interrupcion del pulsador
+"""
+def interrup_rst(pin):
+    if pin_pulsador.value() == 0:
+        print("Pulsador presionado, reiniciando...")
+        pin_r1.value(0)
+        pin_wifi_ok.value(0)
+        machine.reset()
+# Configura la interrupción en el pin del pulsador
+pin_pulsador.irq(trigger=machine.Pin.IRQ_FALLING, handler=interrup_rst)
+
+
+"""
 Interrupcion del Timer
 Lectura del sensor y manejo de la salida de las luces
 """
-
-
-# interrupcion a la que llama el timer 0
 def interrup_t0(tim0):
     global hora_actual
     try:
@@ -177,9 +199,18 @@ def routing(client_socket):
         if horaont.isdigit() is True:
             horaon = int(horaont)
             print("Cambio hora encendido")
+                # Guardar la configuración actualizada
+            if save_config(bytes([horaon, horaoff])):
+                print("Configuración guardada correctamente.")
+            else:
+                print("Error al guardar la configuración.")
         if horaofft.isdigit() is True:
             horaoff = int(horaofft)
             print("Cambio hora apagado")
+            if save_config(bytes([horaon, horaoff])):
+                print("Configuración guardada correctamente.")
+            else:
+                print("Error al guardar la configuración.")
         http_handler(client_socket)
 
     elif response["method"] == "GET" and response["url"] == "/api/sensordata":
