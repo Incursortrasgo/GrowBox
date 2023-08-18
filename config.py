@@ -114,23 +114,6 @@ HTTP/1.1 200 OK
                 </form>
             </div>
             <br>
-            <div class="card">
-            <header class="is-center">
-              <h4>Accionamiento Rele N°1</h4>
-            </header>
-            <footer class="is-center">
-              <form method="POST" action="/">
-                <tr><td></td></tr><br>
-                <button
-                  class="is-center"
-                  name="boton"
-                  value="pres"
-                  type="submit"
-                  >Conmutar R1
-                <br>
-              </form>
-            </footer>
-          </div>
         </div>
       </div>
       <div id="error-card" class="card text-error is-hidden">

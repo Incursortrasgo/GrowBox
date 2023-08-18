@@ -23,7 +23,7 @@ tim0 = Timer(0)  # define direccion del timer
 temperatura = 0
 humedad = 0
 
-def load_config():
+def load_config():  #Funcion para guardar la configuracion en el archivo .dat
     try:
         with open(CONFIG_FILE, "rb") as f:
             config_data = f.read()
@@ -31,9 +31,7 @@ def load_config():
     except OSError:
         return None
 
-
-# Función para guardar la configuración en el archivo .dat
-def save_config(config_data):
+def save_config(config_data):  # Función para guardar la configuración en el archivo .dat
     try:
         with open(CONFIG_FILE, "wb") as f:
             f.write(config_data)
@@ -186,11 +184,6 @@ def routing(client_socket):
     if response["method"] == "GET" and response["url"] == "/":
         http_handler(client_socket)
 
-    elif response["method"] == "POST" and "boton" in response["body"] and response["body"]["boton"] == "pres":
-        # si es un POST y viene el valor del boton, hacer toggle del pin
-        toggle_pin()
-        http_handler(client_socket)
-
     elif response["method"] == "POST" and response["url"] == "/" and "horaon" in response["body"]:
         global horaon
         global horaoff
@@ -199,7 +192,6 @@ def routing(client_socket):
         if horaont.isdigit() is True:
             horaon = int(horaont)
             print("Cambio hora encendido")
-                # Guardar la configuración actualizada
             if save_config(bytes([horaon, horaoff])):
                 print("Configuración guardada correctamente.")
             else:
