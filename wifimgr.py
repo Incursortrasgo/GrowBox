@@ -2,6 +2,9 @@ import network
 import socket
 import ure
 import time
+import machine
+
+pin_wifi_ok = machine.Pin(2, machine.Pin.OUT, machine.Pin.PULL_DOWN)
 
 ap_ssid = "GrowBox WiFi"
 ap_password = "growbox0001"
@@ -34,7 +37,6 @@ def get_connection():
         wlan_sta.active(True)
         networks = wlan_sta.scan()
 
-        AUTHMODE = {0: "open", 1: "WEP", 2: "WPA-PSK", 3: "WPA2-PSK", 4: "WPA/WPA2-PSK"}
         for ssid, bssid, channel, rssi, authmode, hidden in sorted(
             networks, key=lambda x: x[3], reverse=True
         ):
@@ -86,12 +88,14 @@ def do_connect(ssid, password):
         connected = wlan_sta.isconnected()
         if connected:
             break
-        time.sleep(0.1)
+        time.sleep(0.3)
+        pin_wifi_ok.value(not pin_wifi_ok.value())
         print(".", end="")
     if connected:
         print("\nConectado. Configuracion de red: ", wlan_sta.ifconfig())
     else:
         print("\nFallo. No se pudo conectar a: " + ssid)
+    pin_wifi_ok.value(0)
     return connected
 
 
