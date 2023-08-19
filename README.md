@@ -1,6 +1,6 @@
 # GrowBox
 
-Bienvenido a GrowBox
+Bienvenido a GrowBox<br>
 El sistema mide en tiempo real Temperatura y Humedad ambiente.
 Posee un control de iluminación por horarios.
 
