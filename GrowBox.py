@@ -11,9 +11,9 @@ from config import CONFIG
 from utils import parseResponse, load_config, save_config, ctrl_horario
 
 pin_dht = machine.Pin(4, machine.Pin.IN, machine.Pin.PULL_UP)  # Configura el pin GPIO (nropin, modo entrada, pullup)
-pin_pulsador = machine.Pin(21, machine.Pin.IN, machine.Pin.PULL_UP)  # Configura el pin GPIO para el pulsador y el pull-up interno
+pin_pulsador = machine.Pin(0, machine.Pin.IN, machine.Pin.PULL_UP)  # Configura el pin GPIO para el pulsador y el pull-up interno
 pin_r1 = machine.Pin(22, machine.Pin.OUT, machine.Pin.PULL_DOWN)  # Configura el pin GPIO para la salida R1
-pin_wifi_ok = machine.Pin(23, machine.Pin.OUT, machine.Pin.PULL_DOWN)  # pin de salida para led "wifi ok"
+pin_wifi_ok = machine.Pin(2, machine.Pin.OUT, machine.Pin.PULL_DOWN)  # pin de salida para led "wifi ok"
 
 sensor = dht.DHT22(pin_dht)
 rtc = RTC()
@@ -65,7 +65,7 @@ try:
     server.bind((ip_local, 80))
     server.listen(5)
 except OSError:
-    machine.reset()
+    machine.soft_reset()
 
 time.sleep_ms(100)
 
@@ -75,7 +75,7 @@ Gestion de Fecha y Hora
 try:
     ntptime.settime()
 except OSError:
-    machine.reset()
+    machine.soft_reset()
 
 h_u = rtc.datetime()    # calculo para la zona horaria (-3)
 h_u_l = [h_u[0], h_u[1], h_u[2], h_u[3], h_u[4] - 3, h_u[5], h_u[6], h_u[7]]
