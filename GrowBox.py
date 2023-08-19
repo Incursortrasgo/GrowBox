@@ -120,10 +120,7 @@ def interrup_t0(tim0):
     # Maneja las luces
     hora_actual = rtc.datetime()
     resp = ctrl_horario(horaon, horaoff, hora_actual[4])
-    if resp is True:
-        pin_r1.value(1)
-    else:
-        pin_r1.value(0)
+    pin_r1.value(resp)
 
 # inicializa el timer
 tim0.init(period=2000, mode=Timer.PERIODIC, callback=interrup_t0)
