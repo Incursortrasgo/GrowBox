@@ -30,8 +30,15 @@ def interrup_rst(pin):
         print("Pulsador presionado, reiniciando...")
         pin_r1.value(0)
         pin_wifi_ok.value(0)
-        os.remove("config.dat")
-        os.remove("wifi.dat")
+        try:
+            os.remove("config.dat")
+        except OSError:
+            print("no se pudo borrar")
+        try:
+            os.remove("wifi.dat")
+        except OSError:
+            print("no se pudo borrar")
+
         machine.reset()
 # Configura la interrupción en el pin del pulsador
 pin_pulsador.irq(trigger=machine.Pin.IRQ_FALLING, handler=interrup_rst)

@@ -40,10 +40,6 @@ def get_connection():
         ):
             ssid = ssid.decode("utf-8")
             encrypted = authmode > 0
-            print(
-                "ssid: %s chan: %d rssi: %d authmode: %s"
-                % (ssid, channel, rssi, AUTHMODE.get(authmode, "?"))
-            )
             if encrypted:
                 if ssid in profiles:
                     password = profiles[ssid]
@@ -187,6 +183,8 @@ def handle_configure(client, request):
         send_response(client, "SSID must be provided", status_code=400)
         return False
     if do_connect(ssid, password):
+        print(wlan_sta.ifconfig()[0])
+        print("aca")
         response = """\
             <html>
                 <center>
@@ -196,10 +194,15 @@ def handle_configure(client, request):
                             GrowBox se conecto con exito a la red WiFi %(ssid)s.
                         </span>
                     </h1>
+                    <h1 style="color: #5e9ca0; text-align: center;">
+                        <span style="color: #000000;">
+                            Ingresa la direccion %(ip)s en tu navegador
+                        </span>
+                    </h1>
                     <br><br>
                 </center>
             </html>
-        """ % dict(ssid=ssid)
+        """ % dict(ssid=ssid, ip=wlan_sta.ifconfig()[0])
         send_response(client, response)
         time.sleep(1)
         wlan_ap.active(False)
@@ -286,7 +289,6 @@ def start(port=80):
                 print("Data after \\r\\n\\r\\n(i.e. Safari on macOS or iOS)")
             except OSError:
                 pass
-            print("Request is: {}".format(request))
             if "HTTP" not in request:  # skip invalid requests
                 continue
             # version 1.9 compatibility
