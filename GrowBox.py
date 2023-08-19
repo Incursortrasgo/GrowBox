@@ -165,17 +165,13 @@ def routing(client_socket):
         if horaont.isdigit() is True:
             horaon = int(horaont)
             print("Cambio hora encendido")
-            if save_config(bytes([horaon, horaoff])):
-                print("Configuración guardada correctamente.")
-            else:
-                print("Error al guardar la configuración.")
+            save_config(bytes([horaon, horaoff]))
+            print("Hora encendido guardada correctamente.")
         if horaofft.isdigit() is True:
             horaoff = int(horaofft)
             print("Cambio hora apagado")
-            if save_config(bytes([horaon, horaoff])):
-                print("Configuración guardada correctamente.")
-            else:
-                print("Error al guardar la configuración.")
+            save_config(bytes([horaon, horaoff]))
+            print("Hora apagado guardada correctamente.")
         http_handler(client_socket)
 
     elif response["method"] == "GET" and response["url"] == "/api/sensordata":
