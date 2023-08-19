@@ -8,7 +8,7 @@ import network
 import time
 from machine import Timer, RTC
 from config import CONFIG
-from utils import parseResponse, load_config, save_config
+from utils import parseResponse, load_config, save_config, ctrl_horario
 
 pin_dht = machine.Pin(4, machine.Pin.IN, machine.Pin.PULL_UP)  # Configura el pin GPIO (nropin, modo entrada, pullup)
 pin_pulsador = machine.Pin(21, machine.Pin.IN, machine.Pin.PULL_UP)  # Configura el pin GPIO para el pulsador y el pull-up interno
@@ -20,6 +20,8 @@ rtc = RTC()
 tim0 = Timer(0)  # define direccion del timer
 temperatura = 0
 humedad = 0
+horaon = 0
+horaoff = 0
 
 """
 Interrupcion del pulsador
@@ -79,22 +81,22 @@ time.sleep_ms(100)
 """
 Carga los seteos de horaon y horaoff
 """
-config_data = load_config() # carga los datos del archivo
+config_data = load_config()  # carga los datos del archivo
 print("Configuración cargada correctamente.")
 
 if config_data is None:  # si no puede devuelve error
     config_data = bytes([0, 0])
     print("No se pudo cargar, se seteo en cero")
 (horaon, horaoff,) = config_data  # Obtener los valores de horaon y horaoff de la configuración
-print("estos datos se cargaron:", horaon, horaoff)
 
 
 """
 Interrupcion del Timer
-Lectura del sensor y manejo de la salida de las luces
+Lectura del sensor
+Manejo de la salida de las luces
 """
 def interrup_t0(tim0):
-    global hora_actual
+    # Lee los datos del sensor
     try:
         sensor.measure()
         global temperatura
@@ -104,23 +106,13 @@ def interrup_t0(tim0):
     except OSError as e:
         print("error sensor", e)
 
-    # esto maneja los gaps de horario
+    # Maneja las luces
     hora_actual = rtc.datetime()
-    if horaon != 0 or horaoff != 0:
-        if horaon < horaoff:
-            if hora_actual[4] >= horaoff or hora_actual[4] < horaon:
-                if pin_r1.value() == 1:
-                    pin_r1.value(0)
-            if hora_actual[4] >= horaon and hora_actual[4] < horaoff:
-                if pin_r1.value() == 0:
-                    pin_r1.value(1)
-        if horaon > horaoff:
-            if hora_actual[4] >= horaoff and hora_actual[4] < horaon:
-                if pin_r1.value() == 1:
-                    pin_r1.value(0)
-            if hora_actual[4] >= horaon or hora_actual[4] < horaoff:
-                if pin_r1.value() == 0:
-                    pin_r1.value(1)
+    resp = ctrl_horario(horaon, horaoff, hora_actual[4])
+    if resp is True:
+        pin_r1.value(1)
+    else:
+        pin_r1.value(0)
 
 # inicializa el timer
 tim0.init(period=2000, mode=Timer.PERIODIC, callback=interrup_t0)
@@ -141,11 +133,6 @@ HTTP/1.1 500 Internal Server Error
 Error al leer los datos del sensor!: {}
 """.format(e)
         client_socket.send(response.encode("utf-8"))
-
-
-def toggle_pin():
-    pin_r1.value(not pin_r1.value())
-    print("Toggle pin")
 
 
 def sensor_data_handler(client_socket):

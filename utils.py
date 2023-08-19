@@ -44,3 +44,17 @@ def save_config(config_data):
             return True
     except OSError:
         return False
+
+
+def ctrl_horario (horaon, horaoff, hora_actual):
+    if horaon != 0 or horaoff != 0:
+        if horaon < horaoff:
+            if hora_actual >= horaoff or hora_actual < horaon:
+                return False
+            if hora_actual >= horaon and hora_actual < horaoff:
+                return True
+        if horaon > horaoff:
+            if hora_actual >= horaoff and hora_actual < horaon:
+                return False
+            if hora_actual >= horaon or hora_actual < horaoff:
+                return True
