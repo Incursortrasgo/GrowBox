@@ -23,7 +23,7 @@ def parseResponse(response):
     return resp
 
 """
-Funciones de cargar y guardar los seteos de horaon y horaoff
+Cargar y guardar los seteos de horaon y horaoff
 """
 # Funcion para guardar la configuracion en el archivo .dat
 def load_config():
@@ -49,7 +49,7 @@ def save_config(config_data):
 Control de horarios
 """
 def ctrl_horario(horaon, horaoff, hora_actual):
-    if horaon != 0 or horaoff != 0:
+    if (horaon != 0 or horaoff != 0) and (horaon != 1 and horaoff != 1):
         if horaon < horaoff:
             if hora_actual >= horaoff or hora_actual < horaon:
                 return False
@@ -60,3 +60,11 @@ def ctrl_horario(horaon, horaoff, hora_actual):
                 return False
             if hora_actual >= horaon or hora_actual < horaoff:
                 return True
+    elif horaon == 0 or horaoff == 0:
+        return False
+    elif horaon == 1 and horaoff == 1:
+        return True
+
+
+
+

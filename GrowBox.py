@@ -23,6 +23,7 @@ humedad = 0
 
 """
 Interrupcion del pulsador
+Borra los archivos de configuracion wifi.dat config.dat
 """
 def interrup_rst(pin):
     if pin_pulsador.value() == 0:
@@ -141,7 +142,6 @@ def routing(client_socket):
     decodea la solicitud y enruta a la función correspondiente
     """
     response = client_socket.recv(1024)
-    #    print("Contenido de la solicitud: {}".format(str(request)))
     response = response.decode().replace("\r\n", "\n")
     response = parseResponse(response)
 

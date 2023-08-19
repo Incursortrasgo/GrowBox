@@ -193,7 +193,7 @@ def handle_configure(client, request):
                     <br><br>
                     <h1 style="color: #5e9ca0; text-align: center;">
                         <span style="color: #000000;">
-                            ESP successfully connected to WiFi network %(ssid)s.
+                            GrowBox se conecto con exito a la red WiFi %(ssid)s.
                         </span>
                     </h1>
                     <br><br>
@@ -219,14 +219,14 @@ def handle_configure(client, request):
                 <center>
                     <h1 style="color: #5e9ca0; text-align: center;">
                         <span style="color: #ff0000;">
-                            ESP could not connect to WiFi network %(ssid)s.
+                            GrowBox no se pudo conectar a la red WiFi %(ssid)s.
                         </span>
                     </h1>
                     <br><br>
                     <form>
                         <input
                         type="button"
-                        value="Go back!" onclick="history.back()"></input>
+                        value="Volver!" onclick="history.back()"></input>
                     </form>
                 </center>
             </html>
