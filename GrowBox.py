@@ -71,8 +71,7 @@ except OSError:
 
 h_u = rtc.datetime()    # calculo para la zona horaria (-3)
 h_u_l = [h_u[0], h_u[1], h_u[2], h_u[3], h_u[4] - 3, h_u[5], h_u[6], h_u[7]]
-hl = (h_u_l[0], h_u_l[1], h_u_l[2], h_u_l[3], h_u_l[4], h_u_l[5], h_u_l[6], h_u_l[7])
-rtc.init(hl)  # inicializa rtc con la hora calculada
+rtc.init((h_u_l[0], h_u_l[1], h_u_l[2], h_u_l[3], h_u_l[4], h_u_l[5], h_u_l[6], h_u_l[7]))  # inicializa rtc con la hora calculada
 print("Se configuro fecha y Hora", rtc.datetime())
 
 time.sleep_ms(100)
