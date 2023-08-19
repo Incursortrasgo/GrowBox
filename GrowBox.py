@@ -11,7 +11,7 @@ from config import CONFIG
 from utils import parseResponse, load_config, save_config, ctrl_horario
 
 pin_dht = machine.Pin(4, machine.Pin.IN, machine.Pin.PULL_UP)  # Configura el pin GPIO (nropin, modo entrada, pullup)
-pin_pulsador = machine.Pin(0, machine.Pin.IN, machine.Pin.PULL_UP)  # Configura el pin GPIO para el pulsador y el pull-up interno
+pin_pulsador = machine.Pin(21, machine.Pin.IN, machine.Pin.PULL_UP)  # Configura el pin GPIO para el pulsador y el pull-up interno
 pin_r1 = machine.Pin(22, machine.Pin.OUT, machine.Pin.PULL_DOWN)  # Configura el pin GPIO para la salida R1
 pin_wifi_ok = machine.Pin(2, machine.Pin.OUT, machine.Pin.PULL_DOWN)  # pin de salida para led "wifi ok"
 
@@ -20,29 +20,34 @@ rtc = RTC()
 tim0 = Timer(0)  # define direccion del timer
 temperatura = 0
 humedad = 0
+pin_wifi_ok.value(0)  # reset de seguridad
+pin_r1.value(0)  # reset de seguridad
 
 """
 Interrupcion del pulsador
 Borra los archivos de configuracion wifi.dat config.dat
 """
 def interrup_rst(pin):
-    if pin_pulsador.value() == 0:
-        print("Pulsador presionado, reiniciando...")
-        pin_r1.value(0)
-        pin_wifi_ok.value(0)
+    cont = 0
+    print("Pulsador presionado")
+    while (pin_pulsador.value() == 0 and cont <= 9):
+        cont = cont + 1
+        print(cont)
+        time.sleep(1)
+        pass
+
+    if cont >= 9:
         try:
             os.remove("config.dat")
         except OSError:
-            print("no se pudo borrar")
+            print("no se pudo borrar config.dat")
         try:
             os.remove("wifi.dat")
         except OSError:
-            print("no se pudo borrar")
-
+            print("no se pudo borrar wifi.dat")
         machine.reset()
 # Configura la interrupción en el pin del pulsador
 pin_pulsador.irq(trigger=machine.Pin.IRQ_FALLING, handler=interrup_rst)
-
 
 """
 Conecxion WIFI
