@@ -20,8 +20,6 @@ rtc = RTC()
 tim0 = Timer(0)  # define direccion del timer
 temperatura = 0
 humedad = 0
-horaon = 0
-horaoff = 0
 
 """
 Interrupcion del pulsador
@@ -79,7 +77,7 @@ print("Se configuro fecha y Hora", rtc.datetime())
 time.sleep_ms(100)
 
 """
-Carga los seteos de horaon y horaoff
+Carga los seteos de horaon y horaoff desde el archivo
 """
 config_data = load_config()  # carga los datos del archivo
 print("Configuración cargada correctamente.")
@@ -122,9 +120,7 @@ Servicio HTTP
 """
 def http_handler(client_socket):
     try:
-        response = CONFIG["index_template"].format(
-            temperatura, humedad, horaon, horaoff
-        )
+        response = CONFIG["index_template"].format(temperatura, humedad, horaon, horaoff)
         client_socket.send(response.encode("utf-8"))
     except OSError as e:
         response = """
