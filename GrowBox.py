@@ -29,14 +29,14 @@ Borra los archivos de configuracion wifi.dat config.dat
 """
 def interrup_rst(pin):
     cont = 0
-    print("Pulsador presionado")
+    print("Pulsador presionado, mantener para realizar reset de fabrica")
     while (pin_pulsador.value() == 0 and cont <= 9):
         cont = cont + 1
-        print(cont)
         time.sleep(1)
         pass
 
     if cont >= 9:
+        print("reseteando")
         try:
             os.remove("config.dat")
         except OSError:
@@ -61,7 +61,7 @@ if wlan is None:
         pass
 pin_wifi_ok.value(1)
 
-time.sleep_ms(100)
+time.sleep_ms(100)  # estos retardos evitan errores, no preguntes porque.
 
 try:
     server = usocket.socket(usocket.AF_INET, usocket.SOCK_STREAM)
@@ -72,7 +72,7 @@ try:
 except OSError:
     machine.soft_reset()
 
-time.sleep_ms(100)
+time.sleep_ms(100)  # estos retardos evitan errores, no preguntes porque.
 
 """
 Gestion de Fecha y Hora
@@ -87,7 +87,7 @@ h_u_l = [h_u[0], h_u[1], h_u[2], h_u[3], h_u[4] - 3, h_u[5], h_u[6], h_u[7]]
 rtc.init((h_u_l[0], h_u_l[1], h_u_l[2], h_u_l[3], h_u_l[4], h_u_l[5], h_u_l[6], h_u_l[7]))  # inicializa rtc con la hora calculada
 print("Se configuro fecha y Hora", rtc.datetime())
 
-time.sleep_ms(100)
+time.sleep_ms(100)  # estos retardos evitan errores, no preguntes porque.
 
 """
 Carga los seteos de horaon y horaoff desde el archivo
