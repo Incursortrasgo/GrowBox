@@ -47,6 +47,7 @@ pin_pulsador.irq(trigger=machine.Pin.IRQ_FALLING, handler=interrup_rst)
 """
 Conecxion WIFI
 """
+print("Iniciando WiFi......")
 # Configura el wifi e intenta conectarse
 wlan = wifimgr.get_connection()
 if wlan is None:
@@ -87,11 +88,11 @@ time.sleep_ms(100)
 Carga los seteos de horaon y horaoff desde el archivo
 """
 config_data = load_config()  # carga los datos del archivo
-print("Configuración cargada correctamente.")
-
-if config_data is None:  # si no puede devuelve error
+if config_data is not None:
+    print("Configuración de iluminacion cargada correctamente.")
+elif config_data is None:  # si no puede devuelve error
     config_data = bytes([0, 0])
-    print("No se pudo cargar, se seteo en cero")
+    print("No se pudo cargar la configuracion de la iluminacion, se seteo en cero")
 (horaon, horaoff,) = config_data  # Obtener los valores de horaon y horaoff de la configuración
 
 

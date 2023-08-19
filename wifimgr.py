@@ -80,7 +80,7 @@ def do_connect(ssid, password):
     wlan_sta.active(True)
     if wlan_sta.isconnected():
         return None
-    print("Trying to connect to %s..." % ssid)
+    print("Intendando conectar a %s..." % ssid)
     wlan_sta.connect(ssid, password)
     for retry in range(200):
         connected = wlan_sta.isconnected()
@@ -89,9 +89,9 @@ def do_connect(ssid, password):
         time.sleep(0.1)
         print(".", end="")
     if connected:
-        print("\nConnected. Network config: ", wlan_sta.ifconfig())
+        print("\nConectado. Configuracion de red: ", wlan_sta.ifconfig())
     else:
-        print("\nFailed. Not Connected to: " + ssid)
+        print("\nFallo. No se pudo conectar a: " + ssid)
     return connected
 
 
@@ -183,8 +183,6 @@ def handle_configure(client, request):
         send_response(client, "SSID must be provided", status_code=400)
         return False
     if do_connect(ssid, password):
-        print(wlan_sta.ifconfig()[0])
-        print("aca")
         response = """\
             <html>
                 <center>
@@ -266,16 +264,16 @@ def start(port=80):
     server_socket.bind(addr)
     server_socket.listen(1)
 
-    print("Connect to WiFi ssid " + ap_ssid + ", default password: " + ap_password)
-    print("and access the ESP via your favorite web browser at 192.168.4.1.")
-    print("Listening on:", addr)
+    print("Conectate a WiFi ssid " + ap_ssid + ", password: " + ap_password)
+    print("Accede a GrowBox desde tu navegador en: 192.168.4.1.")
+    print("Escuchando en:", addr)
 
     while True:
         if wlan_sta.isconnected():
             wlan_ap.active(False)
             return True
         client, addr = server_socket.accept()
-        print("client connected from", addr)
+        print("cliente conectado desde:", addr)
         try:
             client.settimeout(5.0)
             request = b""
@@ -286,7 +284,6 @@ def start(port=80):
                 pass
             try:
                 request += client.recv(1024)
-                print("Data after \\r\\n\\r\\n(i.e. Safari on macOS or iOS)")
             except OSError:
                 pass
             if "HTTP" not in request:  # skip invalid requests
@@ -305,8 +302,6 @@ def start(port=80):
                     .group(1)
                     .rstrip("/")
                 )
-            print("URL is {}".format(url))
-
             if url == "":
                 handle_root(client)
             elif url == "configure":
