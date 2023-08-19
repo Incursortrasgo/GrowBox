@@ -8,18 +8,15 @@ import network
 import time
 from machine import Timer, RTC
 from config import CONFIG
-from utils import parseResponse
+from utils import parseResponse, load_config, save_config
 
 pin_dht = machine.Pin(4, machine.Pin.IN, machine.Pin.PULL_UP)  # Configura el pin GPIO (nropin, modo entrada, pullup)
 pin_pulsador = machine.Pin(21, machine.Pin.IN, machine.Pin.PULL_UP)  # Configura el pin GPIO para el pulsador y el pull-up interno
 pin_r1 = machine.Pin(22, machine.Pin.OUT, machine.Pin.PULL_DOWN)  # Configura el pin GPIO para la salida R1
 pin_wifi_ok = machine.Pin(23, machine.Pin.OUT, machine.Pin.PULL_DOWN)  # pin de salida para led "wifi ok"
 
-CONFIG_FILE = "config.dat"
 sensor = dht.DHT22(pin_dht)
 rtc = RTC()
-pin_r1.value(0)
-pin_wifi_ok.value(0)
 tim0 = Timer(0)  # define direccion del timer
 temperatura = 0
 humedad = 0
@@ -38,35 +35,6 @@ def interrup_rst(pin):
 # Configura la interrupción en el pin del pulsador
 pin_pulsador.irq(trigger=machine.Pin.IRQ_FALLING, handler=interrup_rst)
 
-"""
-Funciones de cargar y guardar los seteos de horaon y horaoff
-"""
-def load_config():  #Funcion para guardar la configuracion en el archivo .dat
-    try:
-        with open(CONFIG_FILE, "rb") as f:
-            config_data = f.read()
-            return config_data
-    except OSError:
-        return None
-
-def save_config(config_data):  # Función para guardar la configuración en el archivo .dat
-    try:
-        with open(CONFIG_FILE, "wb") as f:
-            f.write(config_data)
-            return True
-    except OSError:
-        return False
-
-config_data = load_config() # carga los datos del archivo
-print("Configuración cargada correctamente.")
-
-if config_data is None:  # si no puede devuelve error
-    config_data = bytes([0, 0])
-    print("No se pudo cargar, se seteo en cero")
-(horaon, horaoff,) = config_data  # Obtener los valores de horaon y horaoff de la configuración
-print("estos datos se cargaron:", horaon, horaoff)
-
-time.sleep_ms(100)
 
 """
 Conecxion WIFI
@@ -87,8 +55,8 @@ try:
     ip_local = wifi.ifconfig()[0]
     server.bind((ip_local, 80))
     server.listen(5)
-except OSError as e:
-  machine.reset()
+except OSError:
+    machine.reset()
 
 time.sleep_ms(100)
 
@@ -106,6 +74,20 @@ hl = (h_u_l[0], h_u_l[1], h_u_l[2], h_u_l[3], h_u_l[4], h_u_l[5], h_u_l[6], h_u_
 rtc.init(hl)  # inicializa rtc con la hora calculada
 print("Se configuro fecha y Hora", rtc.datetime())
 
+time.sleep_ms(100)
+
+"""
+Carga los seteos de horaon y horaoff
+"""
+config_data = load_config() # carga los datos del archivo
+print("Configuración cargada correctamente.")
+
+if config_data is None:  # si no puede devuelve error
+    config_data = bytes([0, 0])
+    print("No se pudo cargar, se seteo en cero")
+(horaon, horaoff,) = config_data  # Obtener los valores de horaon y horaoff de la configuración
+print("estos datos se cargaron:", horaon, horaoff)
+
 
 """
 Interrupcion del Timer
@@ -122,10 +104,8 @@ def interrup_t0(tim0):
     except OSError as e:
         print("error sensor", e)
 
+    # esto maneja los gaps de horario
     hora_actual = rtc.datetime()
-
-# esto maneja los gaps de horario
-# seguro hay una mejor manera de hacerlo
     if horaon != 0 or horaoff != 0:
         if horaon < horaoff:
             if hora_actual[4] >= horaoff or hora_actual[4] < horaon:
@@ -143,7 +123,7 @@ def interrup_t0(tim0):
                     pin_r1.value(1)
 
 # inicializa el timer
-tim0.init(period=2500, mode=Timer.PERIODIC, callback=interrup_t0)
+tim0.init(period=2000, mode=Timer.PERIODIC, callback=interrup_t0)
 
 """
 Servicio HTTP

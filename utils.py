@@ -22,4 +22,25 @@ def parseResponse(response):
                 resp["body"][body_param[0]] = body_param[1]
     return resp
 
+"""
+Funciones de cargar y guardar los seteos de horaon y horaoff
+"""
+# Funcion para guardar la configuracion en el archivo .dat
+def load_config():
+    CONFIG_FILE = "config.dat"
+    try:
+        with open(CONFIG_FILE, "rb") as f:
+            config_data = f.read()
+            return config_data
+    except OSError:
+        return None
 
+# Función para guardar la configuración en el archivo .dat
+def save_config(config_data):
+    CONFIG_FILE = "config.dat"
+    try:
+        with open(CONFIG_FILE, "wb") as f:
+            f.write(config_data)
+            return True
+    except OSError:
+        return False
