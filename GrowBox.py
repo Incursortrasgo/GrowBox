@@ -123,7 +123,7 @@ def interrup_t0(tim0):
     pin_r1.value(resp)
 
 # inicializa el timer
-tim0.init(period=2000, mode=Timer.PERIODIC, callback=interrup_t0)
+tim0.init(period=2500, mode=Timer.PERIODIC, callback=interrup_t0)
 
 """
 Servicio HTTP
