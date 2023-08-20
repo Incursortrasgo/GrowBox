@@ -8,7 +8,7 @@ import network
 import time
 from machine import Timer, RTC
 from config import CONFIG
-from utils import parseResponse, load_config, save_config, ctrl_horario
+from utils import parseResponse, load_config, ctrl_horario, cambio_horario
 
 pin_dht = machine.Pin(4, machine.Pin.IN, machine.Pin.PULL_UP)  # Configura el pin GPIO (nropin, modo entrada, pullup)
 pin_pulsador = machine.Pin(21, machine.Pin.IN, machine.Pin.PULL_UP)  # Configura el pin GPIO para el pulsador y el pull-up interno
@@ -115,6 +115,8 @@ def interrup_t0(tim0):
         temperatura = sensor.temperature()
         humedad = sensor.humidity()
     except OSError as e:
+        temperatura = 0.0
+        humedad = 0.0
         print("error sensor", e)
 
     # Maneja las luces
@@ -160,18 +162,8 @@ def routing(client_socket):
     elif response["method"] == "POST" and response["url"] == "/" and "horaon" in response["body"]:
         global horaon
         global horaoff
-        horaont = response["body"]["horaon"]
-        horaofft = response["body"]["horaoff"]
-        if horaont.isdigit() is True:
-            horaon = int(horaont)
-            print("Cambio hora encendido")
-            save_config(bytes([horaon, horaoff]))
-            print("Hora encendido guardada correctamente.")
-        if horaofft.isdigit() is True:
-            horaoff = int(horaofft)
-            print("Cambio hora apagado")
-            save_config(bytes([horaon, horaoff]))
-            print("Hora apagado guardada correctamente.")
+        resp = cambio_horario(horaon, horaoff, response)
+        (horaon, horaoff,) = resp
         http_handler(client_socket)
 
     elif response["method"] == "GET" and response["url"] == "/api/sensordata":

@@ -47,24 +47,49 @@ def save_config(config_data):
 
 """
 Control de horarios
+Compara la hora actual con la configuracion para encender o apagar las luces
+ 0, 0 = siempre apagado, 1, 1 = siempre prendido
 """
 def ctrl_horario(horaon, horaoff, hora_actual):
     if (horaon != 0 or horaoff != 0) and (horaon != 1 and horaoff != 1):
         if horaon < horaoff:
             if hora_actual >= horaoff or hora_actual < horaon:
-                return False
+                prender = False
             if hora_actual >= horaon and hora_actual < horaoff:
-                return True
+                prender = True
         if horaon > horaoff:
             if hora_actual >= horaoff and hora_actual < horaon:
-                return False
+                prender = False
             if hora_actual >= horaon or hora_actual < horaoff:
-                return True
+                prender = True
     elif horaon == 0 or horaoff == 0:
-        return False
+        prender = False
     elif horaon == 1 and horaoff == 1:
-        return True
+        prender = True
 
+    return (prender)
 
+"""
+Maneja el cambio de configuracion horaria desde la pagina
+y si hubo cambios los guarda en el archivo
+"""
 
+def cambio_horario(horaon, horaoff, response):
+    horaont = response["body"]["horaon"]
+    horaofft = response["body"]["horaoff"]
 
+    if horaont.isdigit() is True:
+        if horaon != int(horaont):
+            horaon = int(horaont)
+            print("Cambio hora encendido")
+            save_config(bytes([horaon, horaoff]))
+            print("Hora encendido guardada correctamente.")
+
+    if horaofft.isdigit() is True:
+        if horaoff != int(horaofft):
+            horaoff = int(horaofft)
+            print("Cambio hora apagado")
+            save_config(bytes([horaon, horaoff]))
+            print("Hora apagado guardada correctamente.")
+
+    return (horaon, horaoff)
