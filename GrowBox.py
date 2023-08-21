@@ -1,4 +1,3 @@
-import os
 import dht
 import machine
 import usocket
@@ -8,7 +7,7 @@ import network
 import time
 from machine import Timer, RTC
 from config import CONFIG
-from utils import parseResponse, load_config, ctrl_horario, cambio_horario, load_name, cambio_nombre
+from utils import parseResponse, load_config, ctrl_horario, cambio_horario, load_name, cambio_nombre, factory_reset
 
 pin_dht = machine.Pin(4, machine.Pin.IN, machine.Pin.PULL_UP)  # Configura el pin GPIO (nropin, modo entrada, pullup)
 pin_pulsador = machine.Pin(21, machine.Pin.IN, machine.Pin.PULL_UP)  # Configura el pin GPIO para el pulsador y el pull-up interno
@@ -36,22 +35,9 @@ def interrup_rst(pin):
         cont = cont + 1
         time.sleep(1)
         pass
-
     if cont >= 9:
-        print("reseteando")
-        try:
-            os.remove("config.dat")
-        except OSError:
-            print("no se pudo borrar config.dat")
-        try:
-            os.remove("wifi.dat")
-        except OSError:
-            print("no se pudo borrar wifi.dat")
-        try:
-            os.remove("nombre.dat")
-        except OSError:
-            print("no se pudo borrar nombre.dat")
-        machine.reset()
+        factory_reset()
+
 # Configura la interrupción en el pin del pulsador
 pin_pulsador.irq(trigger=machine.Pin.IRQ_FALLING, handler=interrup_rst)
 

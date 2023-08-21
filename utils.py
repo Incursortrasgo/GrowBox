@@ -1,3 +1,6 @@
+import os
+import machine
+
 def parseResponse(response):
     resp = {}
     resp["headers"] = {}
@@ -131,4 +134,26 @@ def ctrl_horario(horaon, horaoff, hora_actual):
 
     return (prender)
 
+"""
+Reset de fabrica
+Borra los tres archivos de configuracion
+"""
+def factory_reset():
+    print("reseteando")
+    try:
+        os.remove("config.dat")
+        print("Se elimino config.dat")
+    except OSError:
+        print("no se pudo eliminar config.dat")
+    try:
+        os.remove("wifi.dat")
+        print("Se elimino wifi.dat")
+    except OSError:
+        print("no se pudo eliminar wifi.dat")
+    try:
+        os.remove("nombre.dat")
+        print("Se elimino nombre.dat")
+    except OSError:
+        print("no se pudo eliminar nombre.dat")
 
+    machine.reset()
