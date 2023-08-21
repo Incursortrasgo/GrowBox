@@ -40,6 +40,7 @@ HTTP/1.1 200 OK
     const humidity = document.querySelector("#humidity");
     const horaon = document.querySelector("#horaon");
     const horaoff = document.querySelector("#horaoff");
+    const nombre = document.querySelector("#nombre");
     const errorCard = document.querySelector("#error-card")
 
     const myRequest = new Request("/api/sensordata");
@@ -57,6 +58,7 @@ HTTP/1.1 200 OK
           humidity.innerHTML = `${{response.humidity}} %`;
           horaon.innerHTML = `${{response.horaon}} Hs`;
           horaoff.innerHTML = `${{response.horaoff}} Hs`;
+          nombre.innerHTML = `${{response.nombre}}`;
         }});
     }}
 
@@ -68,7 +70,7 @@ HTTP/1.1 200 OK
       <div class="row">
         <div class="col-1 col-4-lg col-3-md"></div>
         <div class="col-10 col-4-lg col-6-md">
-          <h2 class="is-center">Bienvenido a GrowBox</h2>
+          <h1 class="is-center" id="nombre"> - </h1>
           <div class="card">
             <header class="is-center">
               <h4>Datos de ambiente</h4>
@@ -96,6 +98,8 @@ HTTP/1.1 200 OK
                       type="number"
                       name="horaon"
                       id="horaon"
+                      min="0"
+                      max="23"
                       placeholder="Hora de encendido"
                   </p>
                   <p class="is-center">
@@ -103,6 +107,8 @@ HTTP/1.1 200 OK
                       type="number"
                       name="horaoff"
                       id="horaoff"
+                      min="0"
+                      max="23"
                       placeholder="Hora de apagado"
                   </p>
                   <p class="is-center">
@@ -110,6 +116,20 @@ HTTP/1.1 200 OK
                       class="is-center"
                       type="submit"
                       >Enviar configuracion
+                  </p>
+                </form>
+            </div>
+            <br>
+            <div class="card">
+              <header class="is-center">
+                <h4>Cambiar nombre</h4>
+              </header>
+                <form method="POST" action="/">
+                  <p class="is-center">
+                    <input type="text" name="nombre" id="nombre" placeholder="Nuevo Nombre"
+                  </p>
+                  <p class="is-center">
+                    <button class="is-center" type="submit" >Cambiar
                   </p>
                 </form>
             </div>
@@ -132,7 +152,8 @@ HTTP/1.1 200 OK
   "temp": {:.1f},
   "humidity": {:.1f},
   "horaon": {:.0f},
-  "horaoff": {:.0f}
+  "horaoff": {:.0f},
+  "nombre": {}
 }}
 """
 

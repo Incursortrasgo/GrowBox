@@ -8,7 +8,7 @@ import network
 import time
 from machine import Timer, RTC
 from config import CONFIG
-from utils import parseResponse, load_config, ctrl_horario, cambio_horario
+from utils import parseResponse, load_config, ctrl_horario, cambio_horario, load_name, cambio_nombre
 
 pin_dht = machine.Pin(4, machine.Pin.IN, machine.Pin.PULL_UP)  # Configura el pin GPIO (nropin, modo entrada, pullup)
 pin_pulsador = machine.Pin(21, machine.Pin.IN, machine.Pin.PULL_UP)  # Configura el pin GPIO para el pulsador y el pull-up interno
@@ -22,6 +22,8 @@ temperatura = 0
 humedad = 0
 pin_wifi_ok.value(0)  # reset de seguridad
 pin_r1.value(0)  # reset de seguridad
+nombre = "GrowBox1"
+
 
 """
 Interrupcion del pulsador
@@ -45,6 +47,10 @@ def interrup_rst(pin):
             os.remove("wifi.dat")
         except OSError:
             print("no se pudo borrar wifi.dat")
+        try:
+            os.remove("nombre.dat")
+        except OSError:
+            print("no se pudo borrar nombre.dat")
         machine.reset()
 # Configura la interrupción en el pin del pulsador
 pin_pulsador.irq(trigger=machine.Pin.IRQ_FALLING, handler=interrup_rst)
@@ -100,6 +106,17 @@ elif config_data is None:  # si no puede devuelve error
     print("No se pudo cargar la configuracion de la iluminacion, se seteo en cero")
 (horaon, horaoff,) = config_data  # Obtener los valores de horaon y horaoff de la configuración
 
+"""
+Carga el nombre del aparato desde el archivo
+"""
+nombre = load_name()  # carga los datos del archivo
+if nombre is not None:
+    print("Nombre cargado correctamente.")
+elif nombre is None:  # si no puede devuelve error
+    nombre = '"GrowBox"'
+    print("No se pudo cargar nombre")
+print(nombre)
+
 
 """
 Interrupcion del Timer
@@ -132,7 +149,7 @@ Servicio HTTP
 """
 def http_handler(client_socket):
     try:
-        response = CONFIG["index_template"].format(temperatura, humedad, horaon, horaoff)
+        response = CONFIG["index_template"].format(temperatura, humedad, horaon, horaoff, nombre)
         client_socket.send(response.encode("utf-8"))
     except OSError as e:
         response = """
@@ -144,7 +161,7 @@ Error al leer los datos del sensor!: {}
 
 
 def sensor_data_handler(client_socket):
-    response = CONFIG["api_ok_tpl"].format(temperatura, humedad, horaon, horaoff)
+    response = CONFIG["api_ok_tpl"].format(temperatura, humedad, horaon, horaoff, nombre)
     client_socket.send(response.encode("utf-8"))
 
 
@@ -162,8 +179,12 @@ def routing(client_socket):
     elif response["method"] == "POST" and response["url"] == "/" and "horaon" in response["body"]:
         global horaon
         global horaoff
-        resp = cambio_horario(horaon, horaoff, response)
-        (horaon, horaoff,) = resp
+        (horaon, horaoff,) = cambio_horario(horaon, horaoff, response)
+        http_handler(client_socket)
+
+    elif response["method"] == "POST" and response["url"] == "/" and "nombre" in response["body"]:
+        global nombre
+        nombre = cambio_nombre(nombre, response)
         http_handler(client_socket)
 
     elif response["method"] == "GET" and response["url"] == "/api/sensordata":

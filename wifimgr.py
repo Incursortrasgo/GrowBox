@@ -198,7 +198,7 @@ def handle_configure(client, request):
                     </h1>
                     <h1 style="color: #5e9ca0; text-align: center;">
                         <span style="color: #000000;">
-                            Ingresa la direccion %(ip)s en tu navegador
+                            <a href="http://%(ip)s">Ingresa a %(ip)s desde tu navegador</a>
                         </span>
                     </h1>
                     <br><br>

@@ -46,30 +46,6 @@ def save_config(config_data):
         return False
 
 """
-Control de horarios
-Compara la hora actual con la configuracion para encender o apagar las luces
- 0, 0 = siempre apagado, 1, 1 = siempre prendido
-"""
-def ctrl_horario(horaon, horaoff, hora_actual):
-    if (horaon != 0 or horaoff != 0) and (horaon != 1 and horaoff != 1):
-        if horaon < horaoff:
-            if hora_actual >= horaoff or hora_actual < horaon:
-                prender = False
-            if hora_actual >= horaon and hora_actual < horaoff:
-                prender = True
-        if horaon > horaoff:
-            if hora_actual >= horaoff and hora_actual < horaon:
-                prender = False
-            if hora_actual >= horaon or hora_actual < horaoff:
-                prender = True
-    elif horaon == 0 or horaoff == 0:
-        prender = False
-    elif horaon == 1 and horaoff == 1:
-        prender = True
-
-    return (prender)
-
-"""
 Maneja el cambio de configuracion horaria desde la pagina
 y si hubo cambios los guarda en el archivo
 """
@@ -93,3 +69,66 @@ def cambio_horario(horaon, horaoff, response):
             print("Hora apagado guardada correctamente.")
 
     return (horaon, horaoff)
+
+
+"""
+Cargar y guardar el nombre del aparato
+"""
+# Funcion para guardar la configuracion en el archivo .dat
+def load_name():
+    CONFIG_FILE = "nombre.dat"
+    try:
+        with open(CONFIG_FILE, "r") as f:
+            name_data = f.read()
+            print(name_data)
+            return name_data
+    except OSError:
+        return None
+
+# Función para guardar la configuración en el archivo .dat
+def save_name(name_data):
+    CONFIG_FILE = "nombre.dat"
+    try:
+        with open(CONFIG_FILE, "w") as f:
+            f.write(name_data)
+            print(name_data)
+            return True
+    except OSError:
+        return False
+
+def cambio_nombre(nombre, response):
+    nombre_nuevo = response["body"]["nombre"]
+    nombre_nuevo = '"' + nombre_nuevo + '"'
+    if nombre_nuevo != nombre:
+        save_name(nombre_nuevo)
+        print("Nombre guardado correctamente")
+        return (nombre_nuevo)
+    else:
+        return (nombre)
+
+
+"""
+Control de horarios
+Compara la hora actual con la configuracion para encender o apagar las luces
+ 0, 0 = siempre apagado, 1, 1 = siempre prendido
+"""
+def ctrl_horario(horaon, horaoff, hora_actual):
+    if (horaon != 0 or horaoff != 0) and (horaon != 1 and horaoff != 1):
+        if horaon < horaoff:
+            if hora_actual >= horaoff or hora_actual < horaon:
+                prender = False
+            if hora_actual >= horaon and hora_actual < horaoff:
+                prender = True
+        if horaon > horaoff:
+            if hora_actual >= horaoff and hora_actual < horaon:
+                prender = False
+            if hora_actual >= horaon or hora_actual < horaoff:
+                prender = True
+    elif horaon == 0 or horaoff == 0:
+        prender = False
+    elif horaon == 1 and horaoff == 1:
+        prender = True
+
+    return (prender)
+
+
