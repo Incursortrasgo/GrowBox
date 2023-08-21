@@ -7,13 +7,28 @@ import network
 import time
 from machine import Timer, RTC
 from config import CONFIG
-from utils import parseResponse, load_config, ctrl_horario, cambio_horario, load_name, cambio_nombre, factory_reset
+from utils import (
+    parseResponse,
+    load_config,
+    ctrl_horario,
+    cambio_horario,
+    load_name,
+    cambio_nombre,
+    factory_reset,
+)
 
+"""
+Declara el IO fisico
+"""
 pin_dht = machine.Pin(4, machine.Pin.IN, machine.Pin.PULL_UP)  # Configura el pin GPIO (nropin, modo entrada, pullup)
 pin_pulsador = machine.Pin(21, machine.Pin.IN, machine.Pin.PULL_UP)  # Configura el pin GPIO para el pulsador y el pull-up interno
 pin_r1 = machine.Pin(22, machine.Pin.OUT, machine.Pin.PULL_DOWN)  # Configura el pin GPIO para la salida R1
 pin_wifi_ok = machine.Pin(2, machine.Pin.OUT, machine.Pin.PULL_DOWN)  # pin de salida para led "wifi ok"
 
+
+"""
+Declara variables varias, resetea salidas al arranque
+"""
 sensor = dht.DHT22(pin_dht)
 rtc = RTC()
 tim0 = Timer(0)  # define direccion del timer
@@ -26,7 +41,8 @@ nombre = "GrowBox1"
 
 """
 Interrupcion del pulsador
-Borra los archivos de configuracion wifi.dat config.dat
+Hace un conteo para el reset de fabrica
+No creo que este bien hacer esto adentro de una interrupcion pero anda
 """
 def interrup_rst(pin):
     cont = 0
@@ -38,15 +54,14 @@ def interrup_rst(pin):
     if cont >= 9:
         factory_reset()
 
-# Configura la interrupción en el pin del pulsador
-pin_pulsador.irq(trigger=machine.Pin.IRQ_FALLING, handler=interrup_rst)
+pin_pulsador.irq(trigger=machine.Pin.IRQ_FALLING, handler=interrup_rst)  # Configura la interrupción en el pin del pulsador
+
 
 """
 Conecxion WIFI
 """
 print("Iniciando WiFi......")
-# Configura el wifi e intenta conectarse
-wlan = wifimgr.get_connection()
+wlan = wifimgr.get_connection()  # Configura el wifi e intenta conectarse
 if wlan is None:
     print("Could not initialize the network connection.")
     while True:
@@ -66,6 +81,7 @@ except OSError:
 
 time.sleep_ms(100)  # estos retardos evitan errores, no preguntes porque.
 
+
 """
 Gestion de Fecha y Hora
 """
@@ -81,6 +97,7 @@ print("Se configuro fecha y Hora", rtc.datetime())
 
 time.sleep_ms(100)  # estos retardos evitan errores, no preguntes porque.
 
+
 """
 Carga los seteos de horaon y horaoff desde el archivo
 """
@@ -91,6 +108,7 @@ elif config_data is None:  # si no puede devuelve error
     config_data = bytes([0, 0])
     print("No se pudo cargar la configuracion de la iluminacion, se seteo en cero")
 (horaon, horaoff,) = config_data  # Obtener los valores de horaon y horaoff de la configuración
+
 
 """
 Carga el nombre del aparato desde el archivo
@@ -127,8 +145,8 @@ def interrup_t0(tim0):
     resp = ctrl_horario(horaon, horaoff, hora_actual[4])
     pin_r1.value(resp)
 
-# inicializa el timer
-tim0.init(period=2500, mode=Timer.PERIODIC, callback=interrup_t0)
+tim0.init(period=2500, mode=Timer.PERIODIC, callback=interrup_t0)  # inicializa el timer
+
 
 """
 Servicio HTTP
@@ -151,10 +169,10 @@ def sensor_data_handler(client_socket):
     client_socket.send(response.encode("utf-8"))
 
 
+"""
+decodea la solicitud y enruta a la función correspondiente
+"""
 def routing(client_socket):
-    """
-    decodea la solicitud y enruta a la función correspondiente
-    """
     response = client_socket.recv(1024)
     response = response.decode().replace("\r\n", "\n")
     response = parseResponse(response)

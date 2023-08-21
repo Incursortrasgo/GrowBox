@@ -1,6 +1,10 @@
 import os
 import machine
 
+
+"""
+Decodea la respuesta de gueb
+"""
 def parseResponse(response):
     resp = {}
     resp["headers"] = {}
@@ -25,10 +29,10 @@ def parseResponse(response):
                 resp["body"][body_param[0]] = body_param[1]
     return resp
 
+
 """
 Cargar y guardar los seteos de horaon y horaoff
 """
-# Funcion para guardar la configuracion en el archivo .dat
 def load_config():
     CONFIG_FILE = "config.dat"
     try:
@@ -38,7 +42,6 @@ def load_config():
     except OSError:
         return None
 
-# Función para guardar la configuración en el archivo .dat
 def save_config(config_data):
     CONFIG_FILE = "config.dat"
     try:
@@ -48,11 +51,11 @@ def save_config(config_data):
     except OSError:
         return False
 
+
 """
 Maneja el cambio de configuracion horaria desde la pagina
 y si hubo cambios los guarda en el archivo
 """
-
 def cambio_horario(horaon, horaoff, response):
     horaont = response["body"]["horaon"]
     horaofft = response["body"]["horaoff"]
@@ -77,24 +80,20 @@ def cambio_horario(horaon, horaoff, response):
 """
 Cargar y guardar el nombre del aparato
 """
-# Funcion para guardar la configuracion en el archivo .dat
 def load_name():
     CONFIG_FILE = "nombre.dat"
     try:
         with open(CONFIG_FILE, "r") as f:
             name_data = f.read()
-            print(name_data)
             return name_data
     except OSError:
         return None
 
-# Función para guardar la configuración en el archivo .dat
 def save_name(name_data):
     CONFIG_FILE = "nombre.dat"
     try:
         with open(CONFIG_FILE, "w") as f:
             f.write(name_data)
-            print(name_data)
             return True
     except OSError:
         return False
@@ -133,6 +132,7 @@ def ctrl_horario(horaon, horaoff, hora_actual):
         prender = True
 
     return (prender)
+
 
 """
 Reset de fabrica
