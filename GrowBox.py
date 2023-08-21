@@ -173,29 +173,28 @@ def sensor_data_handler(client_socket):
 decodea la solicitud y enruta a la función correspondiente
 """
 def routing(client_socket):
-    response = client_socket.recv(1024)
+    response = client_socket.recv(1024)  # decodea la respuesta para enrutar
     response = response.decode().replace("\r\n", "\n")
     response = parseResponse(response)
 
-    if response["method"] == "GET" and response["url"] == "/":
+    if response["method"] == "GET" and response["url"] == "/":  # si es un get solo va al handler
         http_handler(client_socket)
 
-    elif response["method"] == "POST" and response["url"] == "/" and "horaon" in response["body"]:
+    elif response["method"] == "POST" and response["url"] == "/" and "horaon" in response["body"]:  # si es un POST y tiene valores de horaon
         global horaon
         global horaoff
         (horaon, horaoff,) = cambio_horario(horaon, horaoff, response)
         http_handler(client_socket)
 
-    elif response["method"] == "POST" and response["url"] == "/" and "nombre" in response["body"]:
+    elif response["method"] == "POST" and response["url"] == "/" and "nombre" in response["body"]:  # si es POST y tiene valor de nombre
         global nombre
         nombre = cambio_nombre(nombre, response)
         http_handler(client_socket)
 
-    elif response["method"] == "GET" and response["url"] == "/api/sensordata":
+    elif response["method"] == "GET" and response["url"] == "/api/sensordata":  # si pide actualizacion de valores
         sensor_data_handler(client_socket)
 
 while True:
-    # Acepta las solicitudes de los clientes y maneja las respuestas
-    client, addr = server.accept()
+    client, addr = server.accept()  # Acepta las solicitudes de los clientes y maneja las respuestas
     routing(client)
     client.close()
