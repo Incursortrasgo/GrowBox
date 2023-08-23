@@ -1,11 +1,11 @@
-import dht
+import ahtx0
 import machine
 import usocket
 import ntptime
 import wifimgr
 import network
 import time
-from machine import Timer, RTC
+from machine import Timer, RTC, Pin, I2C
 from config import CONFIG
 from utils import (
     parseResponse,
@@ -20,16 +20,16 @@ from utils import (
 """
 Declara el IO fisico
 """
-pin_dht = machine.Pin(4, machine.Pin.IN, machine.Pin.PULL_UP)  # Configura el pin GPIO (nropin, modo entrada, pullup)
+pin_wifi_ok = machine.Pin(2, machine.Pin.OUT, machine.Pin.PULL_DOWN)  # pin de salida para led "wifi ok"
+i2c = I2C(1, scl=Pin(18), sda=Pin(19), freq=400000)  # Configura el puerto i2c para leer el sensor de temp+hum ath10
 pin_pulsador = machine.Pin(21, machine.Pin.IN, machine.Pin.PULL_UP)  # Configura el pin GPIO para el pulsador y el pull-up interno
 pin_r1 = machine.Pin(22, machine.Pin.OUT, machine.Pin.PULL_DOWN)  # Configura el pin GPIO para la salida R1
-pin_wifi_ok = machine.Pin(2, machine.Pin.OUT, machine.Pin.PULL_DOWN)  # pin de salida para led "wifi ok"
 
 
 """
 Declara variables varias, resetea salidas al arranque
 """
-sensor = dht.DHT22(pin_dht)
+sensor = ahtx0.AHT10(i2c)
 rtc = RTC()
 tim0 = Timer(0)  # define direccion del timer
 temperatura = 0
@@ -130,11 +130,10 @@ Manejo de la salida de las luces
 def interrup_t0(tim0):
     # Lee los datos del sensor
     try:
-        sensor.measure()
         global temperatura
         global humedad
-        temperatura = sensor.temperature()
-        humedad = sensor.humidity()
+        temperatura = sensor.temperature
+        humedad = sensor.relative_humidity
     except OSError as e:
         temperatura = 0.0
         humedad = 0.0

@@ -85,8 +85,8 @@ HTTP/1.1 200 OK
               <h4>Datos de ambiente:</h4>
             </header>
             <table class="is-center" >
-                <tr><th>Temperatura:</th><th id="temp">{:.1f} °C</th><th id="temp"><meter value="temp" min="0" max="50">temp</meter></th></tr>
-                <tr><th>Humedad:</th><th id="humidity">{:.1f} %</th><th id="humidity"><meter value="humidity" min="0" max="80">humidity</meter></th></tr>
+                <tr><th>Temperatura:</th><th id="temp">{:.1f} °C</th><th id="temp"></th></tr>
+                <tr><th>Humedad:</th><th id="humidity">{:.1f} %</th><th id="humidity"></th></tr>
             </table>
               <blockquote>
                 <small>
