@@ -70,53 +70,59 @@ HTTP/1.1 200 OK
       <div class="row">
         <div class="col-1 col-4-lg col-3-md"></div>
         <div class="col-10 col-4-lg col-6-md">
-          <h1 class="is-center" id="nombre"> - </h1>
+          <h1 class="is-center"> Bienvenido a GrowBox </h1>
+          <div>
+            <header class="is-center">
+                <h3 class="grouped">
+                <h3 class="is-center">Ambiente:&nbsp;</h3>
+                <h3 class="is-center" id="nombre">GrowBox</h3>
+                </h3>
+            </header>
+          </div>
+          <br>
           <div class="card">
             <header class="is-center">
-              <h4>Datos de ambiente</h4>
+              <h4>Datos de ambiente:</h4>
             </header>
-            <table class="is-center">
-                <tr><td>Temperatura:</td><td id="temp">{:.1f} °C</td></tr>
-                <tr><td>Humedad:</td><td id="humidity">{:.1f} %</td></tr>
+            <table class="is-center" >
+                <tr><th>Temperatura:</th><th id="temp">{:.1f} °C</th><th id="temp"><meter value="temp" min="0" max="50">temp</meter></th></tr>
+                <tr><th>Humedad:</th><th id="humidity">{:.1f} %</th><th id="humidity"><meter value="humidity" min="0" max="80">humidity</meter></th></tr>
             </table>
+              <blockquote>
+                <small>
+                  Estos datos son tomados del sensor integrado en tu GrowBox.
+                  Tienen un error de 0,3°C y 2,4%
+                </small>
+              </blockquote>
             </div>
             <br>
             <div class="card">
               <header class="is-center">
-                <h4>Configuracion de Iluminacion</h4>
+                <h4>Control de Iluminación:</h4>
               </header>
+              <br>
                 <form method="POST" action="/">
+                  <p class="is-center">Configuracion actual:</p>
+                      <table class="is-center">
+                        <tr>
+                          <th>Encendido:</th><th id="horaon">{:.0f} Hs</th><th></th><th>Apagado:</th><th id="horaoff">{:.0f} Hs</th>
+                        </tr>
+                      </table>
+                  <br>
+                  <p class="is-center">Nueva configuración:</p>
+                    <p class="grouped">
+                      <input type="number" name="horaon" id="horaon" min="0" max="23" placeholder="Hora encendido"></imput>
+                      <input type="number" name="horaoff" id="horaoff" min="0" max="23" placeholder="Hora apagado"></imput>
+                    </p>
                   <p class="is-center">
-                    Ingresar valores de hora, de 0 a 23
+                    <button class="is-center" type="submit" >Enviar configuración</button>
                   </p>
-                  <table class="is-center">
-                    <tr><td>Encendido:</td><td id="horaon"></td></tr>
-                    <tr><td>Apagado:</td><td id="horaoff"></td></tr>
-                  </table>
-                  <p class="is-center">
-                    <input
-                      type="number"
-                      name="horaon"
-                      id="horaon"
-                      min="0"
-                      max="23"
-                      placeholder="Hora de encendido"
-                  </p>
-                  <p class="is-center">
-                    <input
-                      type="number"
-                      name="horaoff"
-                      id="horaoff"
-                      min="0"
-                      max="23"
-                      placeholder="Hora de apagado"
-                  </p>
-                  <p class="is-center">
-                    <button
-                      class="is-center"
-                      type="submit"
-                      >Enviar configuracion
-                  </p>
+                <blockquote>
+                    <small>
+                      Revisa y cambia el horario de encendido y apagado de tu iluminación.
+                      Doble 0 mantiene la luces apagadas, doble 1 las mantendrá prendidas permanentemente.
+                    </small>
+				  </blockquote>
                 </form>
             </div>
             <br>
@@ -129,11 +135,22 @@ HTTP/1.1 200 OK
                     <input type="text" name="nombre" id="nombre" placeholder="Nuevo Nombre"
                   </p>
                   <p class="is-center">
-                    <button class="is-center" type="submit" >Cambiar
+                    <button class="is-center" type="submit" >Cambiar</button>
                   </p>
+                  <blockquote>
+                    <small>
+                      Mantiene el orden de tus ambientes dándoles un nombre único a cada uno.
+                    </small>
+                  </blockquote>
                 </form>
             </div>
             <br>
+            <div>
+            <blockquote>
+            	Todas las configuraciones se guardan dentro del dispositivo y no se perderán con un corte de energía.
+                Para reiniciar de fabrica tu GrowBox mantén presionado el pulsador interno por 10 segundos.
+            </blockquote>
+            </div>
         </div>
       </div>
       <div id="error-card" class="card text-error is-hidden">
