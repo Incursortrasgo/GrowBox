@@ -1,5 +1,20 @@
 import os
 import machine
+import ntptime
+from machine import RTC
+
+
+""" Actualiza la hora y ajusta la zona horaria (-3) """
+def fecha_hora():
+    rtc = RTC()
+    try:
+        ntptime.settime()
+        hora_utc = rtc.datetime()
+        hora_utc = [hora_utc[0], hora_utc[1], hora_utc[2], hora_utc[3], hora_utc[4] - 3, hora_utc[5], hora_utc[6], hora_utc[7]]
+        rtc.init((hora_utc[0], hora_utc[1], hora_utc[2], hora_utc[3], hora_utc[4], hora_utc[5], hora_utc[6], hora_utc[7]))
+        print("Se configuro fecha y Hora", rtc.datetime())
+    except OSError:
+        machine.soft_reset()
 
 
 """
@@ -38,9 +53,11 @@ def load_config():
     try:
         with open(CONFIG_FILE, "rb") as f:
             config_data = f.read()
+            print("Configuración de iluminacion cargada correctamente.")
             return config_data
     except OSError:
-        return None
+        print("No se pudo cargar la configuracion de la iluminacion, se seteo en cero")
+        return (bytes([0, 0]))
 
 def save_config(config_data):
     CONFIG_FILE = "config.dat"
@@ -85,26 +102,26 @@ def load_name():
     try:
         with open(CONFIG_FILE, "r") as f:
             name_data = f.read()
+            print("Nombre cargado correctamente.")
             return name_data
     except OSError:
-        return None
+        print("No se pudo cargar nombre")
+        return '"GrowBox"'
 
-def save_name(name_data):
-    CONFIG_FILE = "nombre.dat"
-    try:
-        with open(CONFIG_FILE, "w") as f:
-            f.write(name_data)
-            return True
-    except OSError:
-        return False
 
 def cambio_nombre(nombre, response):
     nombre_nuevo = response["body"]["nombre"]
     nombre_nuevo = '"' + nombre_nuevo + '"'
     if nombre_nuevo != nombre:
-        save_name(nombre_nuevo)
-        print("Nombre guardado correctamente")
-        return (nombre_nuevo)
+        CONFIG_FILE = "nombre.dat"
+        try:
+            with open(CONFIG_FILE, "w") as f:
+                f.write(nombre_nuevo)
+                print("Nombre guardado correctamente")
+                return (nombre_nuevo)
+        except OSError:
+            print("No se pudo guardar nombre")
+            return (nombre)
     else:
         return (nombre)
 
@@ -114,7 +131,10 @@ Control de horarios
 Compara la hora actual con la configuracion para encender o apagar las luces
  0, 0 = siempre apagado, 1, 1 = siempre prendido
 """
-def ctrl_horario(horaon, horaoff, hora_actual):
+def ctrl_horario(horaon, horaoff):
+    rtc = RTC()
+    hora_actual = rtc.datetime()
+    hora_actual = (hora_actual[4])
     if (horaon != 0 or horaoff != 0) and (horaon != 1 and horaoff != 1):
         if horaon < horaoff:
             if hora_actual >= horaoff or hora_actual < horaon:
@@ -130,7 +150,6 @@ def ctrl_horario(horaon, horaoff, hora_actual):
         prender = False
     elif horaon == 1 and horaoff == 1:
         prender = True
-
     return (prender)
 
 

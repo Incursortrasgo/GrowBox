@@ -1,11 +1,10 @@
 import ahtx0
 import machine
 import usocket
-import ntptime
 import wifimgr
 import network
 import time
-from machine import Timer, RTC, Pin, I2C
+from machine import Timer, Pin, I2C
 from config import CONFIG
 from utils import (
     parseResponse,
@@ -15,6 +14,7 @@ from utils import (
     load_name,
     cambio_nombre,
     factory_reset,
+    fecha_hora,
 )
 
 """
@@ -30,7 +30,6 @@ pin_r1 = machine.Pin(22, machine.Pin.OUT, machine.Pin.PULL_DOWN)  # Configura el
 Declara variables varias, resetea salidas al arranque
 """
 sensor = ahtx0.AHT10(i2c)
-rtc = RTC()
 tim0 = Timer(0)  # define direccion del timer
 temperatura = 0
 humedad = 0
@@ -54,12 +53,11 @@ def interrup_rst(pin):
     if cont >= 9:
         factory_reset()
 
-pin_pulsador.irq(trigger=machine.Pin.IRQ_FALLING, handler=interrup_rst)  # Configura la interrupción en el pin del pulsador
+# define la interrupcion del pulsador
+pin_pulsador.irq(trigger=machine.Pin.IRQ_FALLING, handler=interrup_rst)
 
 
-"""
-Conecxion WIFI
-"""
+""" Conecxion WIFI """
 print("Iniciando WiFi......")
 wlan = wifimgr.get_connection()  # Configura el wifi e intenta conectarse
 if wlan is None:
@@ -67,8 +65,6 @@ if wlan is None:
     while True:
         pass
 pin_wifi_ok.value(1)
-
-time.sleep_ms(100)  # estos retardos evitan errores, no preguntes porque.
 
 try:
     server = usocket.socket(usocket.AF_INET, usocket.SOCK_STREAM)
@@ -79,47 +75,15 @@ try:
 except OSError:
     machine.soft_reset()
 
-time.sleep_ms(100)  # estos retardos evitan errores, no preguntes porque.
 
+""" Actualiza fecha/hora con inet y ajusta la zona horaria """
+fecha_hora()
 
-"""
-Gestion de Fecha y Hora
-"""
-try:
-    ntptime.settime()
-except OSError:
-    machine.soft_reset()
+""" Carga los seteos de horaon y horaoff desde el archivo """
+(horaon, horaoff,) = load_config()  # carga los datos del archivo
 
-h_u = rtc.datetime()    # calculo para la zona horaria (-3)
-h_u_l = [h_u[0], h_u[1], h_u[2], h_u[3], h_u[4] - 3, h_u[5], h_u[6], h_u[7]]
-rtc.init((h_u_l[0], h_u_l[1], h_u_l[2], h_u_l[3], h_u_l[4], h_u_l[5], h_u_l[6], h_u_l[7]))  # inicializa rtc con la hora calculada
-print("Se configuro fecha y Hora", rtc.datetime())
-
-time.sleep_ms(100)  # estos retardos evitan errores, no preguntes porque.
-
-
-"""
-Carga los seteos de horaon y horaoff desde el archivo
-"""
-config_data = load_config()  # carga los datos del archivo
-if config_data is not None:
-    print("Configuración de iluminacion cargada correctamente.")
-elif config_data is None:  # si no puede devuelve error
-    config_data = bytes([0, 0])
-    print("No se pudo cargar la configuracion de la iluminacion, se seteo en cero")
-(horaon, horaoff,) = config_data  # Obtener los valores de horaon y horaoff de la configuración
-
-
-"""
-Carga el nombre del aparato desde el archivo
-"""
+""" Carga el nombre del aparato desde el archivo """
 nombre = load_name()  # carga los datos del archivo
-if nombre is not None:
-    print("Nombre cargado correctamente.")
-elif nombre is None:  # si no puede devuelve error
-    nombre = '"GrowBox"'
-    print("No se pudo cargar nombre")
-print(nombre)
 
 
 """
@@ -128,8 +92,8 @@ Lectura del sensor
 Manejo de la salida de las luces
 """
 def interrup_t0(tim0):
-    # Lee los datos del sensor
-    try:
+
+    try:  # Lee los datos del sensor
         global temperatura
         global humedad
         temperatura = sensor.temperature
@@ -139,11 +103,10 @@ def interrup_t0(tim0):
         humedad = 0.0
         print("error sensor", e)
 
-    # Maneja las luces
-    hora_actual = rtc.datetime()
-    resp = ctrl_horario(horaon, horaoff, hora_actual[4])
-    pin_r1.value(resp)
+    # chequea la configuracion de luces y manda a prender o apagar la salida
+    pin_r1.value(ctrl_horario(horaon, horaoff))
 
+# define el timer
 tim0.init(period=2500, mode=Timer.PERIODIC, callback=interrup_t0)  # inicializa el timer
 
 
