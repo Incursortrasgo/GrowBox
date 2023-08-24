@@ -117,6 +117,11 @@ def save_name(name_data):
 
 def cambio_nombre(nombre, response):
     nombre_nuevo = response["body"]["nombre"]
+    nombre_nuevo = nombre_nuevo.replace("+", " ")
+    nombre_nuevo = nombre_nuevo.replace("%3F", "?")
+    nombre_nuevo = nombre_nuevo.replace("%40", "@")
+    nombre_nuevo = nombre_nuevo.replace("%21", "!")
+    nombre_nuevo = nombre_nuevo.replace("%2C", ",")
     nombre_nuevo = '"' + nombre_nuevo + '"'
     if nombre_nuevo != nombre:
         save_name(nombre_nuevo)
