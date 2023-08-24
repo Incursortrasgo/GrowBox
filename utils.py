@@ -102,26 +102,26 @@ def load_name():
     try:
         with open(CONFIG_FILE, "r") as f:
             name_data = f.read()
-            print("Nombre cargado correctamente.")
             return name_data
     except OSError:
-        print("No se pudo cargar nombre")
-        return '"GrowBox"'
+        return None
 
+def save_name(name_data):
+    CONFIG_FILE = "nombre.dat"
+    try:
+        with open(CONFIG_FILE, "w") as f:
+            f.write(name_data)
+            return True
+    except OSError:
+        return False
 
 def cambio_nombre(nombre, response):
     nombre_nuevo = response["body"]["nombre"]
     nombre_nuevo = '"' + nombre_nuevo + '"'
     if nombre_nuevo != nombre:
-        CONFIG_FILE = "nombre.dat"
-        try:
-            with open(CONFIG_FILE, "w") as f:
-                f.write(nombre_nuevo)
-                print("Nombre guardado correctamente")
-                return (nombre_nuevo)
-        except OSError:
-            print("No se pudo guardar nombre")
-            return (nombre)
+        save_name(nombre_nuevo)
+        print("Nombre guardado correctamente")
+        return (nombre_nuevo)
     else:
         return (nombre)
 
