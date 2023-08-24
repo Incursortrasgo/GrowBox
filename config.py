@@ -15,9 +15,10 @@ HTTP/1.1 200 OK
 
   <style>
   body {{
-    background-image: url(
-    "https://lh3.googleusercontent.com/pw/AIL4fc8aqICJOGtWal8Q1Ghbze4NhdCun-2Elm36Sf0jyHnGVepzN9qDblrD104rAtDmtDG_7fl8nsMEs-BRef2YvkHvZTv4FexcyMezTowz7IykpQCsLbNv7mWwdOe3-0p8kGSoskQE7FUPEhYx-Yco7ptUVg=w748-h1580-s-no"
-    );
+    background-image: url("http://drive.google.com/uc?export=view&id=1YTRiXH1kq_Zp0UHmtgVreHg2w35M51Uc");
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-size: cover;
     padding: 10px;
   }}
   body.dark {{
