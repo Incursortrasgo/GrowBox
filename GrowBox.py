@@ -1,10 +1,10 @@
-import ahtx0
+
 import machine
 import usocket
 import wifimgr
 import network
 import time
-from machine import Timer, Pin, I2C
+from machine import Timer
 from config import CONFIG
 from utils import (
     parseResponse,
@@ -15,21 +15,19 @@ from utils import (
     cambio_nombre,
     factory_reset,
     fecha_hora,
+    leer_sensor,
 )
 
 """
 Declara el IO fisico
 """
 pin_wifi_ok = machine.Pin(2, machine.Pin.OUT, machine.Pin.PULL_DOWN)  # pin de salida para led "wifi ok"
-i2c = I2C(1, scl=Pin(18), sda=Pin(19), freq=400000)  # Configura el puerto i2c para leer el sensor de temp+hum ath10
 pin_pulsador = machine.Pin(21, machine.Pin.IN, machine.Pin.PULL_UP)  # Configura el pin GPIO para el pulsador y el pull-up interno
 pin_r1 = machine.Pin(22, machine.Pin.OUT, machine.Pin.PULL_DOWN)  # Configura el pin GPIO para la salida R1
-
 
 """
 Declara variables varias, resetea salidas al arranque
 """
-sensor = ahtx0.AHT10(i2c)
 tim0 = Timer(0)  # define direccion del timer
 temperatura = 0
 humedad = 0
@@ -64,6 +62,7 @@ if wlan is None:
     print("Could not initialize the network connection.")
     while True:
         pass
+
 pin_wifi_ok.value(1)
 
 try:
@@ -92,19 +91,13 @@ Lectura del sensor
 Manejo de la salida de las luces
 """
 def interrup_t0(tim0):
-
-    try:  # Lee los datos del sensor
-        global temperatura
-        global humedad
-        temperatura = sensor.temperature
-        humedad = sensor.relative_humidity
-    except OSError as e:
-        temperatura = 0.0
-        humedad = 0.0
-        print("error sensor", e)
-
+    global temperatura
+    global humedad
     # chequea la configuracion de luces y manda a prender o apagar la salida
     pin_r1.value(ctrl_horario(horaon, horaoff))
+    # lectura del sensor
+    (temperatura, humedad) = leer_sensor()
+
 
 # define el timer
 tim0.init(period=2500, mode=Timer.PERIODIC, callback=interrup_t0)  # inicializa el timer

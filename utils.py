@@ -1,8 +1,23 @@
 import os
 import machine
 import ntptime
-from machine import RTC
+import ahtx0
+from machine import RTC, I2C, Pin
 
+
+""" dispara la lectura del sensor """
+def leer_sensor():
+    i2c = I2C(1, scl=Pin(18), sda=Pin(19), freq=400000)
+    sensor = ahtx0.AHT10(i2c)
+    try:
+        temperatura = sensor.temperature
+        humedad = sensor.relative_humidity
+    except OSError as e:
+        temperatura = 0.0
+        humedad = 0.0
+        print("error sensor", e)
+
+    return (temperatura, humedad)
 
 """ Actualiza la hora y ajusta la zona horaria (-3) """
 def fecha_hora():
@@ -102,6 +117,7 @@ def load_name():
     try:
         with open(CONFIG_FILE, "r") as f:
             name_data = f.read()
+            print("Nombre cargado correctamente")
             return name_data
     except OSError:
         return None
