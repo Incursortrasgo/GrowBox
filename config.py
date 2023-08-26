@@ -9,7 +9,7 @@ HTTP/1.1 200 OK
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>GrowBox [beta]</title>
+    <title>GrowBox</title>
     <link rel="stylesheet" href="https://unpkg.com/chota@latest">
   </head>
 
@@ -42,6 +42,7 @@ HTTP/1.1 200 OK
     const horaon = document.querySelector("#horaon");
     const horaoff = document.querySelector("#horaoff");
     const nombre = document.querySelector("#nombre");
+    document.title = nombre.textContent;
     const errorCard = document.querySelector("#error-card")
 
     const myRequest = new Request("/api/sensordata");
@@ -148,7 +149,7 @@ HTTP/1.1 200 OK
             <br>
             <div>
             <blockquote>
-            	Todas las configuraciones se guardan dentro del dispositivo y no se perderán con un corte de energía.
+                Todas las configuraciones se guardan dentro del dispositivo y no se perderán con un corte de energía.
                 Para reiniciar de fabrica tu GrowBox mantén presionado el pulsador interno por 10 segundos.
             </blockquote>
             </div>
