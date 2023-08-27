@@ -122,16 +122,16 @@ def handle_root(client):
     client.sendall(
         """\
         <html>
-            <h1 style="color: #5e9ca0; text-align: center;">
-                <span style="color: #000000;">
-                    Configuracion inicial WiFi
-                </span>
+            <h1 style="text-align: center;">
+                Configuracion inicial WiFi
             </h1>
+            <h3 style="text-align: center;">
+                Seleccione su red WiFi e ingrese la contrasena
+            </h3>
             <form action="configure" method="post">
                 <table style="margin-left: auto; margin-right: auto;">
                     <tbody>
-    """
-    )
+    """)
     while len(ssids):
         ssid = ssids.pop(0)
         client.sendall(
@@ -141,32 +141,22 @@ def handle_root(client):
                                 <input type="radio" name="ssid" value="{0}" />{0}
                             </td>
                         </tr>
-        """.format(
-                ssid
-            )
-        )
-    client.sendall("""\
+        """.format(ssid))
+    client.sendall(
+            """\
+                        <td>&nbsp;</td>
                         <tr>
                             <td>Password:</td>
                             <td><input name="password" type="password" /></td>
                         </tr>
                     </tbody>
                 </table>
-                <p style="text-align: center;">
-                    <input type="submit" value="Submit" />
-                </p>
-            </form>
-            <p>&nbsp;</p>
-            <hr />
-            <h5>
-                <span style="color: #000000;">
-                    Seleccione su red WiFi e ingrese su contraseña
-                    Los datos seran almacenados en "%(filename)s"
-                </span>
-            </h5>
-            <hr />
-        </html>
-    """ % dict(filename=NETWORK_PROFILES))
+                    <p style="text-align: center;">
+                        <input type="submit" value="Conectar" />
+                    </p>
+                </form>
+            </html>
+        """)
     client.close()
 
 
@@ -184,23 +174,25 @@ def handle_configure(client, request):
         ssid = match.group(1).replace("%3F", "?").replace("%21", "!")
         password = match.group(2).replace("%3F", "?").replace("%21", "!")
     if len(ssid) == 0:
-        send_response(client, "SSID must be provided", status_code=400)
+        send_response(client, "Debes elegir una red", status_code=400)
         return False
     if do_connect(ssid, password):
         response = """\
             <html>
                 <center>
                     <br><br>
-                    <h1 style="color: #5e9ca0; text-align: center;">
-                        <span style="color: #000000;">
-                            GrowBox se conecto con exito a la red WiFi %(ssid)s.
-                        </span>
-                    </h1>
-                    <h1 style="color: #5e9ca0; text-align: center;">
-                        <span style="color: #000000;">
-                            <a href="http://%(ip)s">Ingresa a %(ip)s desde tu navegador</a>
-                        </span>
-                    </h1>
+                    <h3 style="text-align: center;">
+                        GrowBox se conecto con exito a la red WiFi %(ssid)s.
+                    </h3>
+                    <h3 style="text-align: center;">
+                        Espera que la luz azul de tu GrowBox quede fija.
+                    </h3>
+                    <h3 style="text-align: center;">
+                        Espera que tu dispositivo vuelva a conectarse a internet.
+                    </h3>
+                    <h3 style="text-align: center;">
+                        <a href="http://%(ip)s">Ingresa a %(ip)s desde tu navegador</a>
+                    </h3>
                     <br><br>
                 </center>
             </html>

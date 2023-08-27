@@ -15,7 +15,7 @@ HTTP/1.1 200 OK
 
   <style>
   body {{
-    background-image: url("http://drive.google.com/uc?export=view&id=1YTRiXH1kq_Zp0UHmtgVreHg2w35M51Uc");
+    background-image: url("https://lh3.googleusercontent.com/pw/AIL4fc8aqICJOGtWal8Q1Ghbze4NhdCun-2Elm36Sf0jyHnGVepzN9qDblrD104rAtDmtDG_7fl8nsMEs-BRef2YvkHvZTv4FexcyMezTowz7IykpQCsLbNv7mWwdOe3-0p8kGSoskQE7FUPEhYx-Yco7ptUVg=w748-h1580-s-no");
     background-repeat: no-repeat;
     background-attachment: fixed;
     background-size: cover;
@@ -42,7 +42,7 @@ HTTP/1.1 200 OK
     const horaon = document.querySelector("#horaon");
     const horaoff = document.querySelector("#horaoff");
     const nombre = document.querySelector("#nombre");
-    document.title = nombre.textContent;
+    const titulo = document.querySelector("title");
     const errorCard = document.querySelector("#error-card")
 
     const myRequest = new Request("/api/sensordata");
@@ -61,6 +61,7 @@ HTTP/1.1 200 OK
           horaon.innerHTML = `${{response.horaon}} Hs`;
           horaoff.innerHTML = `${{response.horaoff}} Hs`;
           nombre.innerHTML = `${{response.nombre}}`;
+          titulo.innerHTML = `${{response.nombre}}`;
         }});
     }}
 

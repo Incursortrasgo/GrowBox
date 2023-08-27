@@ -100,7 +100,7 @@ def interrup_t0(tim0):
 
 
 # define el timer
-tim0.init(period=2500, mode=Timer.PERIODIC, callback=interrup_t0)  # inicializa el timer
+tim0.init(period=5000, mode=Timer.PERIODIC, callback=interrup_t0)  # inicializa el timer
 
 
 """

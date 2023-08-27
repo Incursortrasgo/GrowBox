@@ -7,7 +7,7 @@ from machine import RTC, I2C, Pin
 
 """ dispara la lectura del sensor """
 def leer_sensor():
-    i2c = I2C(1, scl=Pin(18), sda=Pin(19), freq=400000)
+    i2c = I2C(1, scl=Pin(19), sda=Pin(18), freq=400000)
     sensor = ahtx0.AHT10(i2c)
     try:
         temperatura = sensor.temperature
@@ -120,6 +120,7 @@ def load_name():
             print("Nombre cargado correctamente")
             return name_data
     except OSError:
+        print("No se pudo cargar nombre")
         return None
 
 def save_name(name_data):
